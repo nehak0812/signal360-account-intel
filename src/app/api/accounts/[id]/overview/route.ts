@@ -121,6 +121,27 @@ export async function GET(
       }
     }
 
+    // Calculate Dynamic Competitive Rank
+    const competitorLinks = await db.competitorSet.findMany({
+      where: { accountId: id },
+      include: { competitorEntity: true },
+    });
+    
+    const targetMomentum = 50 + (ratio_growth_risk * 10);
+    let allMomentums = [targetMomentum];
+    
+    for (const link of competitorLinks) {
+      const compScore = await db.score.findFirst({
+        where: { accountId: link.competitorEntity.id },
+        orderBy: { computedAt: "desc" },
+      });
+      allMomentums.push(compScore?.momentum ?? 55);
+    }
+    
+    allMomentums.sort((a, b) => b - a);
+    const competitive_rank = allMomentums.indexOf(targetMomentum) + 1;
+    const competitive_of = allMomentums.length;
+
     // Construct final payload
     const payload = {
       entity: {
@@ -133,9 +154,9 @@ export async function GET(
         hq: `${entity.hqCity || ""}, ${entity.hqCountry || ""}`.trim().replace(/^,|,$/, ""),
       },
       score: {
-        momentum: 50 + (ratio_growth_risk * 10), // simulated momentum
-        competitive_rank: 3,
-        competitive_of: 5,
+        momentum: targetMomentum,
+        competitive_rank: competitive_rank,
+        competitive_of: competitive_of,
         growth_count_30d: growthCount,
         risk_count_30d: riskCount,
         neutral_count_30d: neutralCount,
