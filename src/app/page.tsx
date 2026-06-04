@@ -354,9 +354,6 @@ export default function SignalDashboard() {
               <path d="M4 6h16M4 12h16M4 18h10"/>
             </svg>
             News &amp; Signals
-            <span className="ml-auto font-mono text-[10px] bg-accent/20 text-accent px-[6px] py-[1px] rounded-full">
-              {overview?.stats?.active_signals_30d || 38}
-            </span>
           </button>
 
           <button 
