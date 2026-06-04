@@ -664,9 +664,18 @@ export default function SignalDashboard() {
                       <CardHeader className="flex flex-col items-start gap-1">
                         <CardTitle>Account Health</CardTitle>
                         <div className="text-left font-mono text-[10.5px] text-ink-soft leading-relaxed mt-2 pb-2">
-                          Account Health rolls up two metrics:<br/>
-                          • <b>Momentum (0–100)</b>: Trailing 30-day weighted balance of growth vs risk signals.<br/>
-                          • <b>Competitive Position</b>: Ranked position of the account relative to its compete set.
+                          <p className="mb-2">Account Health evaluates real-time strategic standing through two key lenses:</p>
+                          
+                          <p className="font-semibold text-ink mb-1">1. 30-Day Momentum (0–100 Scale)</p>
+                          <p className="mb-1">Calculates the weighted balance of Growth vs. Risk signals generated over the trailing 30 days:</p>
+                          <ul className="mb-3 space-y-1 ml-1">
+                            <li className="flex items-center"><span className="w-1.5 h-1.5 rounded-full bg-risk mr-2"></span><b>0–40 (Risk-Leaning)</b>: Emerging risks outweigh growth.</li>
+                            <li className="flex items-center"><span className="w-1.5 h-1.5 rounded-full bg-accent mr-2"></span><b>41–59 (Stable)</b>: Balanced volume of risks and growth.</li>
+                            <li className="flex items-center"><span className="w-1.5 h-1.5 rounded-full bg-growth mr-2"></span><b>60–100 (Growth)</b>: Positive strategic events dominate.</li>
+                          </ul>
+
+                          <p className="font-semibold text-ink mb-1">2. Competitive Position</p>
+                          <p>The company's Momentum score ranked directly against its Compete Set peers.</p>
                         </div>
                       </CardHeader>
                       <div className="flex flex-col gap-[18px]">
