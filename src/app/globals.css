@@ -1,0 +1,156 @@
+@import "tailwindcss";
+
+:root {
+  --paper: #F2ECE0;
+  --paper-2: #FBF7EF;
+  --paper-3: #F8F2E6;
+  --ink: #23211B;
+  --ink-soft: #6B6353;
+  --ink-faint: #9A917E;
+  --line: rgba(35, 33, 27, 0.12);
+  --line-soft: rgba(35, 33, 27, 0.07);
+  --brand: #1F5E72;
+  --brand-deep: #15454F;
+  --accent: #E5A93C;
+  --growth: #2F7D55;
+  --growth-bg: rgba(47, 125, 85, 0.10);
+  --risk: #BF4530;
+  --risk-bg: rgba(191, 69, 48, 0.10);
+  --neutral: #9A8A6B;
+  --neutral-bg: rgba(154, 138, 107, 0.12);
+  --shadow: 0 1px 2px rgba(35, 33, 27, 0.04), 0 8px 28px rgba(35, 33, 27, 0.06);
+  --shadow-lg: 0 24px 60px rgba(35, 33, 27, 0.16);
+}
+
+@theme {
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-paper-3: var(--paper-3);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-brand: var(--brand);
+  --color-brand-deep: var(--brand-deep);
+  --color-accent: var(--accent);
+  --color-growth: var(--growth);
+  --color-growth-bg: var(--growth-bg);
+  --color-risk: var(--risk);
+  --color-risk-bg: var(--risk-bg);
+  --color-neutral: var(--neutral);
+  --color-neutral-bg: var(--neutral-bg);
+
+  --font-display: var(--font-display), serif;
+  --font-body: var(--font-body), sans-serif;
+  --font-mono: var(--font-mono), monospace;
+
+  --animate-rise: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-pulse-slow: pulse-slow 2s infinite;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes pulse-slow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(80, 200, 140, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(80, 200, 140, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(80, 200, 140, 0);
+  }
+}
+
+/* Custom global scrollbars */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 10px;
+  border: 3px solid var(--paper);
+}
+
+/* Apply display styling and backgrounds */
+body {
+  font-family: var(--font-body), sans-serif;
+  color: var(--ink);
+  background: var(--paper);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  background-image: radial-gradient(rgba(35, 33, 27, 0.025) 1px, transparent 1px);
+  background-size: 22px 22px;
+  min-height: 100vh;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.4;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--ink);
+}
+
+/* Layout helpers from prototype */
+.dot-grid {
+  background-image: radial-gradient(rgba(35, 33, 27, 0.025) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.scrim {
+  transition: opacity 0.25s ease;
+}
+
+.drawer {
+  transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Print layout for PDF export of briefing sheet */
+@media print {
+  body {
+    background: none !important;
+    background-image: none !important;
+  }
+  body::after {
+    display: none !important;
+  }
+  .app, header, aside, .topbar, button, .iconbtn, .scrim {
+    display: none !important;
+  }
+  .modal {
+    position: static !important;
+    display: block !important;
+    padding: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+  }
+  .modal .sheet {
+    max-height: none !important;
+    overflow-y: visible !important;
+    box-shadow: none !important;
+    border: none !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+  .closex, #modalClose2, #modalClose3 {
+    display: none !important;
+  }
+}

@@ -1,0 +1,185 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Entity {
+  id              String   @id @default(uuid())
+  legalName       String
+  displayName     String
+  domain          String?
+  tickers         String?  // JSON array string: [{exchange: "LSE", symbol: "ULVR"}]
+  industry        String?
+  hqCountry       String?
+  hqCity          String?
+  identifiers     String?  // JSON object string: {cik, lei, companiesHouseNo}
+  isPublic        Boolean?
+  createdAt       DateTime @default(now())
+
+  signals         Signal[]
+  people          Person[]
+  leadershipPosts LeadershipPost[]
+  financialMetrics FinancialMetric[]
+  marketQuotes    MarketQuote[]
+  sentimentPoints SentimentPoint[]
+  themes          Theme[]
+  competitorSets  CompetitorSet[]  @relation("AccountCompetitors")
+  asCompetitor    CompetitorSet[]  @relation("CompetitorEntity")
+}
+
+model Signal {
+  id             String   @id @default(uuid())
+  entityId       String
+  entity         Entity   @relation(fields: [entityId], references: [id], onDelete: Cascade)
+  aboutRole      String   // target | competitor | industry | geo
+  accountId      String?
+  category       String   // ma | ai_pivot | earnings | leadership | restructure | regulatory | partnership | expansion | crisis | esg | major_contract
+  type           String   // growth | risk | neutral
+  severity       Int      // 1 to 5
+  title          String
+  summary        String   // short paraphrase
+  rawExcerpt     String?  // verbatim snippet
+  publishedAt    DateTime
+  retrievedAt    DateTime @default(now())
+  sources        String   // JSON array string of {publisher, url, retrieved_at}
+  confidence     Float?
+  embedding      String?  // JSON array string of 768 floats (vector representation)
+  dedupHash      String?
+  isIllustrative Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  @@unique([accountId, dedupHash])
+}
+
+model Person {
+  id             String   @id @default(uuid())
+  entityId       String
+  entity         Entity   @relation(fields: [entityId], references: [id], onDelete: Cascade)
+  fullName       String?
+  roleTitle      String
+  isCurrent      Boolean?
+  changeType     String?  // appointed | departed | promoted | role_change
+  changedAt      DateTime?
+  source         String?  // JSON string: {publisher, url}
+  isIllustrative Boolean  @default(false)
+  posts          LeadershipPost[]
+}
+
+model LeadershipPost {
+  id             String   @id @default(uuid())
+  entityId       String
+  entity         Entity   @relation(fields: [entityId], references: [id], onDelete: Cascade)
+  personId       String?
+  person         Person?  @relation(fields: [personId], references: [id], onDelete: SetNull)
+  aboutRole      String?  // target | competitor
+  body           String   // compliant snippet/paraphrase
+  topics         String?  // JSON array string: ["#PowerBrands"]
+  engagement     String?  // JSON string: {reactions, comments, reposts}
+  postedAt       DateTime?
+  source         String   // JSON string: {publisher, url}
+  isIllustrative Boolean  @default(false)
+}
+
+model FinancialMetric {
+  id          String   @id @default(uuid())
+  entityId    String
+  entity      Entity   @relation(fields: [entityId], references: [id], onDelete: Cascade)
+  period      String   // e.g. FY2025, Q1-2026
+  metric      String   // e.g. turnover, gross_margin, fcf, dividend, eps, net_debt
+  value       Float
+  unit        String   // e.g. EUR, %, x
+  yoyChange   Float?
+  source      String   // JSON string: {publisher, url, page}
+  filedAt     DateTime?
+}
+
+model MarketQuote {
+  id             String   @id @default(uuid())
+  entityId       String
+  entity         Entity   @relation(fields: [entityId], references: [id], onDelete: Cascade)
+  ticker         String
+  price          Float
+  currency       String
+  changePct      Float
+  week52Low      Float
+  week52High     Float
+  marketCap      String
+  pe             Float?
+  dividendYield  Float?
+  consensus      String?  // JSON string: {buy, hold, sell, rating}
+  asOf           DateTime
+  isDelayed      Boolean  @default(true)
+  source         String   // JSON string: {publisher, url}
+}
+
+model SentimentPoint {
+  id             String   @id @default(uuid())
+  entityId       String
+  entity         Entity   @relation(fields: [entityId], references: [id], onDelete: Cascade)
+  bucketStart    DateTime
+  netScore       Float    // -1.0 to +1.0
+  bySource       String?  // JSON string: {news, social, trade, analyst}
+  sampleMentions String?  // JSON array string of mentions
+}
+
+model Theme {
+  id          String   @id @default(uuid())
+  accountId   String
+  account     Entity   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  label       String
+  type        String   // growth | risk | watch
+  narrative   String
+  strength    Float    // 0.0 to 1.0
+  signalIds   String   // JSON array string of signal UUIDs
+  computedAt  DateTime @default(now())
+}
+
+model Score {
+  id                String   @id @default(uuid())
+  accountId         String
+  momentum          Int      // 0 to 100
+  competitiveRank  Int
+  competitiveOf     Int
+  growthCount30d    Int
+  riskCount30d      Int
+  neutralCount30d   Int
+  ratioGrowthRisk   Float
+  overallStatus     String   // net_positive | mixed | elevated_risk
+  computedAt        DateTime @default(now())
+}
+
+model Alert {
+  id        String   @id @default(uuid())
+  accountId String
+  signalId  String?
+  severity  Int      // 1 to 5
+  title     String
+  body      String
+  createdAt DateTime @default(now())
+  readAt    DateTime?
+}
+
+model Watchlist {
+  id        String   @id @default(uuid())
+  userId    String
+  accountId String
+  addedAt   DateTime @default(now())
+
+  @@unique([userId, accountId])
+}
+
+model CompetitorSet {
+  id                 String   @id @default(uuid())
+  accountId          String
+  account            Entity   @relation("AccountCompetitors", fields: [accountId], references: [id], onDelete: Cascade)
+  competitorEntityId String
+  competitorEntity   Entity   @relation("CompetitorEntity", fields: [competitorEntityId], references: [id], onDelete: Cascade)
+  rank               Int
+  source             String   // agent | user
+
+  @@unique([accountId, competitorEntityId])
+}
