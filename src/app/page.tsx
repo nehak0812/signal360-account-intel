@@ -43,7 +43,25 @@ export default function SignalDashboard() {
   const [searchCandidates, setSearchCandidates] = useState<any[]>([]);
   const [watchlisted, setWatchlisted] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
+  const handleSyncLiveSignals = async () => {
+    setIsSyncing(true);
+    try {
+      const res = await fetch("/api/signals/sync", { method: "POST" });
+      const data = await res.json();
+      if (data.success) {
+        alert(`Successfully synced ${data.count} live signals!`);
+        loadSignalsFeed();
+      } else {
+        alert("Failed to sync signals: " + data.error);
+      }
+    } catch (e) {
+      alert("Error syncing signals.");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
   // Fetch Watchlist status & list
   const fetchWatchlist = async () => {
     try {
@@ -990,7 +1008,23 @@ export default function SignalDashboard() {
                 <section className="page active space-y-6 animate-rise">
                   <div className="phead text-left mb-[22px]">
                     <div className="eyebrow font-mono text-[10px] tracking-widest text-brand font-semibold uppercase">News &amp; Signals Feed</div>
-                    <h1 className="ptitle font-display font-semibold text-[30px] leading-tight text-ink mt-[7px] mb-[5px] tracking-tight">Signal Stream</h1>
+                    <div className="flex items-center justify-between mt-[7px] mb-[5px]">
+                      <h1 className="ptitle font-display font-semibold text-[30px] leading-tight text-ink tracking-tight">Signal Stream</h1>
+                      <button 
+                        onClick={handleSyncLiveSignals}
+                        disabled={isSyncing}
+                        className={`font-mono text-[11px] px-4 py-2 border rounded-full transition-colors flex items-center gap-2 ${isSyncing ? "bg-paper border-line text-ink-faint" : "bg-ink text-paper-2 hover:bg-ink-soft"}`}
+                      >
+                        {isSyncing ? (
+                          <>
+                            <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
+                            SYNCING LIVE NEWS...
+                          </>
+                        ) : (
+                          <>SYNC LIVE SIGNALS</>
+                        )}
+                      </button>
+                    </div>
                     <p className="psub text-ink-soft text-[14px] max-w-[700px]">Classified and severity-scored signals. Use filters to query by taxonomy, type, range or context scope.</p>
                   </div>
 
