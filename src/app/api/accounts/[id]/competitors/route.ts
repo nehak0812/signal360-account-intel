@@ -37,11 +37,15 @@ export async function GET(
     };
 
     const fetchCompanyData = async (comp: any) => {
-      // 1. Fetch live DB signals and score
-      const score = await db.score.findFirst({
-        where: { accountId: comp.id },
-        orderBy: { computedAt: "desc" },
+      // 1. Fetch live DB signals to calculate dynamic real-time score
+      const compSignals = await db.signal.findMany({
+        where: { entityId: comp.id },
       });
+      
+      const growthCount = compSignals.filter(s => s.type === "growth").length;
+      const riskCount = compSignals.filter(s => s.type === "risk").length;
+      const ratioGrowthRisk = riskCount > 0 ? (growthCount / riskCount) : (growthCount > 0 ? 2.0 : 1.0);
+      const calculatedMomentum = 50 + (ratioGrowthRisk * 10);
 
       const latestSignal = await db.signal.findFirst({
         where: { entityId: comp.id },
@@ -90,11 +94,8 @@ export async function GET(
         else { revenue = "$10.5B"; margin = "42%"; }
       }
 
-      // Calculate sentiment
-      let sentiment = "+0.10";
-      if (score) {
-        sentiment = score.ratioGrowthRisk >= 1.5 ? "+0.30" : score.ratioGrowthRisk < 0.67 ? "-0.15" : "+0.10";
-      }
+      // Calculate sentiment dynamically
+      const sentiment = ratioGrowthRisk >= 1.5 ? "+0.30" : ratioGrowthRisk < 0.67 ? "-0.15" : "+0.10";
 
       return {
         entity: {
@@ -103,7 +104,7 @@ export async function GET(
           tickers: comp.tickers ? JSON.parse(comp.tickers) : [],
           industry: comp.industry,
         },
-        momentum: score?.momentum ?? 55,
+        momentum: calculatedMomentum,
         revenue,
         gross_margin: margin,
         latest_signal: latestSignal ? latestSignal.title : "No recent signals",
