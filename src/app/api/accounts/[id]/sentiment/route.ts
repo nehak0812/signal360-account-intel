@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import Parser from "rss-parser";
+import { ai, DEFAULT_MODEL } from "@/lib/gemini";
+import { Type } from "@google/genai";
 
 export async function GET(
   request: NextRequest,
@@ -9,72 +12,130 @@ export async function GET(
   const id = resolvedParams.id;
 
   try {
-    const dbPoints = await db.sentimentPoint.findMany({
-      where: { entityId: id },
-      orderBy: { bucketStart: "asc" },
-    });
+    const entity = await db.entity.findUnique({ where: { id } });
+    if (!entity) return NextResponse.json({ error: "Entity not found" }, { status: 404 });
 
-    const trend = dbPoints.map((p, idx) => ({
-      week: `W${idx + 1}`,
-      score: p.netScore,
-    }));
+    const parser = new Parser();
+    const query = `${entity.legalName} company news`;
+    const feedUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
+    
+    let feed;
+    try {
+      feed = await parser.parseURL(feedUrl);
+    } catch (e) {
+      console.error("RSS parser failed in sentiment route:", e);
+      throw new Error("RSS parser failed");
+    }
+    
+    const latestItems = feed.items.slice(0, 10); // Analyze top 10 articles
 
-    const finalTrend = trend.length > 0 ? trend : [
-      { week: "Wk 1", score: 0.10 },
-      { week: "Wk 2", score: 0.08 },
-      { week: "Wk 3", score: 0.12 },
-      { week: "Wk 4", score: 0.15 },
-      { week: "Wk 5", score: 0.05 },
-      { week: "Wk 6", score: -0.05 }, // Dip during Ice cream separation debates
-      { week: "Wk 7", score: 0.02 },
-      { week: "Wk 8", score: 0.10 },
-      { week: "Wk 9", score: 0.18 },
-      { week: "Wk 10", score: 0.22 },
-      { week: "Wk 11", score: 0.25 },
-      { week: "Wk 12", score: 0.30 }, // Recovery on FY earnings + McCormick combine
-    ];
+    const prompt = `
+      You are an expert financial sentiment analyst. Analyze the following recent news events for the company ${entity.legalName}.
+      
+      For EACH news event, calculate a sentiment polarity score on a scale of -1.0 (extremely negative/risk) to +1.0 (extremely positive/growth).
+      Also, categorize the publisher into one of the following source types: "news" (mainstream news), "trade" (industry specific), "analyst" (financial/investment), or "social" (social media/blogs).
 
-    const by_source = {
-      news: 0.35,
-      social: 0.20,
-      trade: 0.30,
-      analyst: 0.40,
-    };
+      News Items:
+      ${latestItems.map((item, i) => `[${i+1}] ${item.source || 'News'}: ${item.title}`).join("\n")}
 
-    const mentions = [
-      {
-        type: "news",
-        who: "Financial Times",
-        title: "Unilever's demerger of Ice Cream seen as positive step for margins",
-        url: "#",
-        polarity: 0.4,
-      },
-      {
-        type: "analyst",
-        who: "Barclays Capital",
-        title: "Upgrading Unilever to Overweight — productivity targets look highly credible",
-        url: "#",
-        polarity: 0.6,
-      },
-      {
-        type: "social",
-        who: "Twitter / FMCG News",
-        title: "Consumers react positively to Knorr's new organic flavour range",
-        url: "#",
-        polarity: 0.2,
-      },
-      {
-        type: "trade",
-        who: "Retail Week",
-        title: "EU green-claims guidelines create compliance headache for brands",
-        url: "#",
-        polarity: -0.3,
+      Return a JSON object with:
+      1. "mentions": an array of analyzed items, where each item has exactly these fields:
+         - "who": String (the publisher name)
+         - "title": String (the article title)
+         - "polarity": Number (the sentiment score from -1.0 to 1.0)
+         - "type": String ("news", "trade", "analyst", or "social")
+      2. "trend": an array of 12 numbers representing a simulated 12-week sentiment trend ending at the current average polarity score. Generate a realistic, slightly fluctuating line that logically ends at the average of these 10 articles.
+    `;
+
+    let mentions: any[] = [];
+    let trend: any[] = [];
+    let by_source = { news: 0, trade: 0, analyst: 0, social: 0 };
+    let net_now = 0;
+
+    try {
+      const response = await ai.models.generateContent({
+        model: DEFAULT_MODEL,
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              mentions: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    who: { type: Type.STRING },
+                    title: { type: Type.STRING },
+                    polarity: { type: Type.NUMBER },
+                    type: { type: Type.STRING }
+                  },
+                  required: ["who", "title", "polarity", "type"]
+                }
+              },
+              trend: {
+                type: Type.ARRAY,
+                items: { type: Type.NUMBER }
+              }
+            },
+            required: ["mentions", "trend"]
+          }
+        }
+      });
+
+      if (response.text) {
+        const parsed = JSON.parse(response.text);
+        
+        // Map mentions and attach the real URLs from the scraped feed
+        mentions = parsed.mentions.map((m: any, i: number) => ({
+          ...m,
+          url: latestItems[i]?.link || "#"
+        }));
+
+        // Calculate by_source averages
+        const types = ["news", "trade", "analyst", "social"];
+        types.forEach(t => {
+          const typeMentions = mentions.filter((m: any) => m.type === t);
+          if (typeMentions.length > 0) {
+            const sum = typeMentions.reduce((acc: number, m: any) => acc + m.polarity, 0);
+            (by_source as any)[t] = parseFloat((sum / typeMentions.length).toFixed(2));
+          }
+        });
+
+        // Map trend to Wk schema
+        trend = parsed.trend.slice(0, 12).map((score: number, idx: number) => ({
+          week: `Wk ${idx + 1}`,
+          score: parseFloat(score.toFixed(2))
+        }));
+
+        if (trend.length > 0) {
+          net_now = trend[trend.length - 1].score;
+        } else if (mentions.length > 0) {
+          net_now = mentions.reduce((acc: number, m: any) => acc + m.polarity, 0) / mentions.length;
+        }
       }
-    ];
+    } catch (genAiErr) {
+      console.error("Gemini failed to analyze sentiment:", genAiErr);
+    }
+
+    // Fallback if Gemini fails
+    if (mentions.length === 0) {
+      mentions = latestItems.slice(0, 4).map(item => ({
+        type: "news",
+        who: item.source || "News",
+        title: item.title || "Company Update",
+        url: item.link || "#",
+        polarity: 0.1
+      }));
+      trend = Array.from({ length: 12 }, (_, i) => ({ week: `Wk ${i + 1}`, score: 0.1 }));
+      by_source = { news: 0.1, trade: 0, analyst: 0, social: 0 };
+      net_now = 0.1;
+    }
 
     return NextResponse.json({
-      net_now: finalTrend[finalTrend.length - 1]?.score ?? 0.30,
-      trend: finalTrend,
+      net_now,
+      trend,
       by_source,
       mentions,
     });
