@@ -661,17 +661,14 @@ export default function SignalDashboard() {
 
                     {/* Account Health gauges */}
                     <Card>
-                      <CardHeader>
+                      <CardHeader className="flex flex-col items-start gap-1">
                         <CardTitle>Account Health</CardTitle>
-                        <Tooltip title="How this is calculated" className="ml-auto">
-                          Account Health rolls up two metrics:
-                          <div className="mt-2 space-y-2">
-                            <div><b>Momentum (0–100)</b>: Trailing 30-day weighted balance of growth vs risk signals.</div>
-                            <div><b>Competitive Position</b>: Ranked position of the account relative to its compete set.</div>
-                          </div>
-                        </Tooltip>
+                        <div className="text-left font-mono text-[10.5px] text-ink-soft leading-relaxed mt-2 pb-2">
+                          Account Health rolls up two metrics:<br/>
+                          • <b>Momentum (0–100)</b>: Trailing 30-day weighted balance of growth vs risk signals.<br/>
+                          • <b>Competitive Position</b>: Ranked position of the account relative to its compete set.
+                        </div>
                       </CardHeader>
-                      
                       <div className="flex flex-col gap-[18px]">
                         <div className="flex items-center gap-[18px] text-left">
                           <Gauge 

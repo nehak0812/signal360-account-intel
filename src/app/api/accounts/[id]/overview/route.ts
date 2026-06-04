@@ -4,6 +4,8 @@ import YahooFinance from "yahoo-finance2";
 import { ai, DEFAULT_MODEL } from "@/lib/gemini";
 import { Type } from "@google/genai";
 
+export const dynamic = "force-dynamic";
+
 const yahooFinance = new YahooFinance();
 
 export async function GET(
