@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/db";
 import { ai, DEFAULT_MODEL } from "@/lib/gemini";
 import Parser from "rss-parser";
 import crypto from "crypto";
@@ -8,7 +8,7 @@ import { Type } from "@google/genai";
 export async function POST() {
   try {
     const parser = new Parser();
-    const unilever = await prisma.entity.findFirst({
+    const unilever = await db.entity.findFirst({
       where: { legalName: "Unilever PLC" }
     });
 
@@ -16,14 +16,14 @@ export async function POST() {
       return NextResponse.json({ error: "Target entity not found" }, { status: 404 });
     }
 
-    const competitors = await prisma.competitorSet.findMany({
+    const competitors = await db.competitorSet.findMany({
       where: { accountId: unilever.id },
       include: { competitorEntity: true }
     });
 
     const queries = [
       { name: "Unilever", role: "target", entityId: unilever.id },
-      ...competitors.map(c => ({ name: c.competitorEntity.legalName, role: "competitor", entityId: c.competitorEntity.id })),
+      ...competitors.map((c: any) => ({ name: c.competitorEntity.legalName, role: "competitor", entityId: c.competitorEntity.id })),
       { name: "FMCG regulations", role: "industry", entityId: unilever.id },
       { name: "Consumer Goods supply chain", role: "industry", entityId: unilever.id }
     ];
@@ -40,7 +40,7 @@ export async function POST() {
         // Hash for deduplication
         const hash = crypto.createHash('sha256').update(item.title || "").digest('hex');
         
-        const existing = await prisma.signal.findUnique({
+        const existing = await db.signal.findUnique({
           where: {
             accountId_dedupHash: {
               accountId: unilever.id,
@@ -86,7 +86,7 @@ export async function POST() {
           if (response.text) {
             const parsed = JSON.parse(response.text);
             
-            await prisma.signal.create({
+            await db.signal.create({
               data: {
                 entityId: q.entityId,
                 aboutRole: q.role,
