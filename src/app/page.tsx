@@ -1206,11 +1206,11 @@ export default function SignalDashboard() {
                       <div className="scatter relative h-[340px] border border-line rounded-[13px] bg-paper-3 overflow-hidden bg-[radial-gradient(rgba(35,33,27,0.04)_1px,transparent_1px)] bg-[size:10%_25%] select-none">
                         
                         {/* Axes Labels */}
-                        <div className="axlabel absolute bottom-3 left-1/2 -translate-x-1/2 font-mono text-[9px] uppercase tracking-widest text-ink-faint">
-                          ◄ RISK MOMENTUM · GROWTH MOMENTUM ►
+                        <div className="axlabel absolute bottom-3 left-1/2 -translate-x-1/2 font-mono text-[9px] uppercase tracking-widest text-ink-faint bg-paper-3 px-2 whitespace-nowrap">
+                          X-AXIS: ◄ SEVERE RISKS | NEUTRAL | HIGH GROWTH ►
                         </div>
-                        <div className="axlabel absolute left-3 top-1/2 -translate-y-1/2 rotate-90 origin-left font-mono text-[9px] uppercase tracking-widest text-ink-faint">
-                          BUSINESS MATERIALITY IMPACT ▲
+                        <div className="axlabel absolute left-5 top-1/2 -translate-y-1/2 -translate-x-1/2 -rotate-90 font-mono text-[9px] uppercase tracking-widest text-ink-faint bg-paper-3 px-2 whitespace-nowrap">
+                          Y-AXIS: HIGH SEVERITY / IMPACT ▲
                         </div>
 
                         {/* Middle divide line */}
@@ -1246,7 +1246,7 @@ export default function SignalDashboard() {
                       {/* Map plot legend */}
                       <Card className="py-3">
                         <div className="flex justify-between items-center text-xs font-mono text-ink-soft">
-                          <span><b>S1 - S{mapData?.plot?.length || 0}</b>: Individual Sourced Signals mapped to impact</span>
+                          <span><b>S1 - S{mapData?.plot?.length || 0}</b>: Live Sourced News Signals (X=Growth/Risk, Y=Severity)</span>
                           <span className="flex gap-4">
                             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-growth"></span>Growth</span>
                             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-risk"></span>Risk</span>

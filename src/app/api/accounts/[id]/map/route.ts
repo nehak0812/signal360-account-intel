@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { ai, DEFAULT_MODEL } from "@/lib/gemini";
+import { Type } from "@google/genai";
 
 export async function GET(
   request: NextRequest,
@@ -9,6 +11,9 @@ export async function GET(
   const id = resolvedParams.id;
 
   try {
+    const entity = await db.entity.findUnique({ where: { id } });
+    if (!entity) return NextResponse.json({ error: "Entity not found" }, { status: 404 });
+
     const score = await db.score.findFirst({
       where: { accountId: id },
       orderBy: { computedAt: "desc" },
@@ -45,45 +50,90 @@ export async function GET(
       };
     });
 
-    // 2. Fetch Theme Clusters
-    const dbThemes = await db.theme.findMany({
-      where: { accountId: id },
-      orderBy: { computedAt: "desc" },
-    });
+    // 2. Fetch Theme Clusters dynamically via Gemini
+    let finalThemes: any[] = [];
+    
+    if (dbSignals.length > 0) {
+      const prompt = `
+        You are an intelligence analyst summarizing news signals into strategic themes for ${entity.legalName}.
+        Review the following recent news events:
+        
+        ${dbSignals.slice(0, 15).map(s => `- ID: ${s.id} | Title: ${s.title} | Type: ${s.type} | Summary: ${s.summary}`).join("\n")}
+        
+        Group these events into exactly 2 or 3 distinct Strategic Theme Clusters (e.g. "AI Acceleration", "Regulatory Scrutiny", "Portfolio Sharpening").
+        For each cluster, determine if it represents primarily "growth", "risk", or "neutral".
+        Provide a 1-sentence narrative describing the theme.
+        Provide a strength score (0.0 to 1.0) based on how dominant the theme is.
+        List the IDs of the news events that belong to this cluster.
 
-    const themes = dbThemes.map(t => ({
-      label: t.label,
-      type: t.type,
-      narrative: t.narrative,
-      strength: t.strength,
-      signal_ids: JSON.parse(t.signalIds),
-    }));
+        Return a JSON object with a "themes" array, where each item has:
+        - "label": String (Theme name)
+        - "type": String ("growth", "risk", or "neutral")
+        - "narrative": String (1-sentence description)
+        - "strength": Number (0.0 to 1.0)
+        - "signal_ids": Array of Strings (The IDs of the signals that belong to this theme)
+      `;
 
-    // If no themes in DB, return default rule-based clusters
-    const finalThemes = themes.length > 0 ? themes : [
-      {
-        label: "Strategic Portfolio Sharpening",
-        type: "growth",
-        narrative: "Focusing core operations on Beauty, Well-being and Personal Care via major demergers and brand integrations.",
-        strength: 0.90,
-        signal_ids: dbSignals.filter(s => s.category === "ma" || s.category === "restructure").map(s => s.id),
-      },
-      {
-        label: "Regulatory ESG Scrutiny",
-        type: "risk",
-        narrative: "Adapting to tightening EU environmental substantiation and packaging compliance guidelines.",
-        strength: 0.65,
-        signal_ids: dbSignals.filter(s => s.category === "regulatory" || s.category === "esg").map(s => s.id),
+      try {
+        const response = await ai.models.generateContent({
+          model: DEFAULT_MODEL,
+          contents: prompt,
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                themes: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      label: { type: Type.STRING },
+                      type: { type: Type.STRING },
+                      narrative: { type: Type.STRING },
+                      strength: { type: Type.NUMBER },
+                      signal_ids: { type: Type.ARRAY, items: { type: Type.STRING } }
+                    },
+                    required: ["label", "type", "narrative", "strength", "signal_ids"]
+                  }
+                }
+              },
+              required: ["themes"]
+            }
+          }
+        });
+
+        if (response.text) {
+          const parsed = JSON.parse(response.text);
+          finalThemes = parsed.themes;
+        }
+      } catch (genAiErr) {
+        console.error("Gemini failed to generate themes:", genAiErr);
       }
-    ];
+    }
+
+    // Fallback if Gemini fails
+    if (finalThemes.length === 0) {
+      finalThemes = [
+        {
+          label: "Strategic Portfolio Updates",
+          type: "growth",
+          narrative: "Recent structural and strategic shifts based on the latest signals.",
+          strength: 0.90,
+          signal_ids: dbSignals.slice(0, 3).map(s => s.id),
+        }
+      ];
+    }
 
     return NextResponse.json({
       plot,
       balance: {
-        growth: score?.growthCount30d ?? dbSignals.filter(s => s.type === "growth").length,
-        risk: score?.riskCount30d ?? dbSignals.filter(s => s.type === "risk").length,
-        neutral: score?.neutralCount30d ?? dbSignals.filter(s => s.type === "neutral").length,
-        ratio_30d: score?.ratioGrowthRisk ?? 1.0,
+        growth: dbSignals.filter(s => s.type === "growth").length,
+        risk: dbSignals.filter(s => s.type === "risk").length,
+        neutral: dbSignals.filter(s => s.type === "neutral").length,
+        ratio_30d: dbSignals.filter(s => s.type === "risk").length > 0 
+          ? parseFloat((dbSignals.filter(s => s.type === "growth").length / dbSignals.filter(s => s.type === "risk").length).toFixed(2)) 
+          : 1.0,
       },
       themes: finalThemes,
     });
