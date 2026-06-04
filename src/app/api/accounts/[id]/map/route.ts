@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { ai, DEFAULT_MODEL } from "@/lib/gemini";
 import { Type } from "@google/genai";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
