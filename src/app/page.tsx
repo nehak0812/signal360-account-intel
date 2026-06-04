@@ -879,6 +879,9 @@ export default function SignalDashboard() {
                             onChange={(e) => handleSearch(e.target.value)}
                           />
                         </div>
+                        <div className="mt-3 text-left font-mono text-[11px] text-risk/90 font-medium">
+                          For the pilot demo, type Unilever in the search bar and click on Unilever PLC
+                        </div>
                         {searchCandidates.length > 0 && (
                           <div className="note font-mono text-[10px] text-ink-soft mt-3 text-left">
                             {searchCandidates.length} candidate entities matched · select one to switch context
