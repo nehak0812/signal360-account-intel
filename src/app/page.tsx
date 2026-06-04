@@ -1396,6 +1396,27 @@ export default function SignalDashboard() {
                       </tbody>
                     </table>
                   </Card>
+
+                  <div className="phead text-left mt-8 mb-[22px]">
+                    <div className="eyebrow font-mono text-[10px] tracking-widest text-brand font-semibold uppercase">AI Financial &amp; Strategic Synthesis</div>
+                    <h2 className="ptitle font-display font-semibold text-[24px] leading-tight text-ink mt-[7px] mb-[5px] tracking-tight">Key Themes from Annual Filings</h2>
+                    <p className="psub text-ink-soft text-[14px] max-w-[700px]">Strategic growth drivers, investment areas, and emerging risks synthesized directly from the latest competitor filings and reports.</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {competitors?.themes?.map((theme: any, idx: number) => (
+                      <Card key={idx} className="p-5 text-left bg-white border border-line hover:border-brand/30 transition-colors">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="font-semibold text-[15.5px] flex items-center gap-2 text-ink">
+                            {theme.company}
+                          </div>
+                          <Badge type={theme.type}>{theme.type.toUpperCase()}</Badge>
+                        </div>
+                        <h4 className="font-mono text-[11px] text-ink-soft mb-2 tracking-wide uppercase">{theme.title}</h4>
+                        <p className="text-[13.5px] text-ink leading-relaxed">{theme.description}</p>
+                      </Card>
+                    ))}
+                  </div>
                 </section>
               )}
 
