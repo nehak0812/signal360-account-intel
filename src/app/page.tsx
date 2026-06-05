@@ -770,7 +770,19 @@ export default function SignalDashboard() {
 
                   {/* Stat Tiles row */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[18px]">
-                    <StatTile label="Turnover (FY2025)" value={overview?.stats?.turnover || "€60.8B"} change="~4% underlying" direction="up" />
+                    <StatTile 
+                      label="Turnover (FY2025)" 
+                      value={overview?.stats?.turnover || "€60.8B"} 
+                      change="~4% underlying" 
+                      direction="up" 
+                      tooltipTitle="Financial Reporting Period"
+                      tooltipContent={
+                        <div className="space-y-1">
+                          <p>Unilever's financial reporting year ends on <strong>December 31st</strong>.</p>
+                          <p className="mt-1">FY2025 metrics reflect the full-year reporting period ending December 31, 2025.</p>
+                        </div>
+                      }
+                    />
                     <StatTile label="Active Signals (30d)" value={overview?.stats?.active_signals_30d || "38"} change="9 new this week" direction="up" />
                     <StatTile 
                       label="Net Sentiment" 
@@ -1715,10 +1727,18 @@ export default function SignalDashboard() {
               {/* PAGE 6: FINANCIALS */}
               {activeTab === "financials" && (
                 <section className="page active space-y-6 animate-rise">
-                  <div className="phead text-left mb-[22px]">
-                    <div className="eyebrow font-mono text-[10px] tracking-widest text-brand font-semibold uppercase">Financial Deep-Dive</div>
-                    <h1 className="ptitle font-display font-semibold text-[30px] leading-tight text-ink mt-[7px] mb-[5px] tracking-tight">Regulatory Financials</h1>
-                    <p className="psub text-ink-soft text-[14px] max-w-[700px]">Strictly filings-sourced metrics parsed from SEC 20-F annual and 6-K quarterly reports. Every value includes full provenance.</p>
+                  <div className="phead text-left mb-[22px] flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                    <div>
+                      <div className="eyebrow font-mono text-[10px] tracking-widest text-brand font-semibold uppercase">Financial Deep-Dive</div>
+                      <h1 className="ptitle font-display font-semibold text-[30px] leading-tight text-ink mt-[7px] mb-[5px] tracking-tight">Regulatory Financials</h1>
+                      <p className="psub text-ink-soft text-[14px] max-w-[700px]">Strictly filings-sourced metrics parsed from SEC 20-F annual and 6-K quarterly reports. Every value includes full provenance. Unilever's financial reporting year ends on <strong>December 31st</strong>.</p>
+                    </div>
+                    <div className="flex-shrink-0">
+                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-paper-3 border border-line font-mono text-[11px] text-ink-soft">
+                        <span className="w-1.5 h-1.5 rounded-full bg-brand"></span>
+                        Reporting Year End: <strong className="text-ink font-semibold">Dec 31</strong>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Financial KPI stats */}
