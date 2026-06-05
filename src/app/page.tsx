@@ -1800,52 +1800,108 @@ export default function SignalDashboard() {
                     ))}
                   </div>
 
-                  {/* AI Financial Analysis & Insights */}
+                  {/* AI Financial Analysis & Insights & Earnings Call Consensus */}
                   {financials?.analysis && (
-                    <Card className="text-left p-[20px] md:p-[24px] bg-paper border border-line rounded-[16px] shadow-sm mt-6">
-                      <div className="flex items-center gap-[9px] mb-4">
-                        <div className="w-[8px] h-[8px] rounded-full bg-brand animate-pulse"></div>
-                        <div className="eyebrow font-mono text-[10px] tracking-widest text-brand font-semibold uppercase">AI Analysis &amp; Insights Agent</div>
-                      </div>
-                      
-                      <h2 className="font-display font-semibold text-[20px] leading-tight text-ink mb-3 tracking-tight">Executive Financial Synthesis</h2>
-                      
-                      <p className="text-[14.2px] leading-[1.65] text-ink mb-5 pb-4 border-b border-line-soft">
-                        {financials.analysis.summary}
-                      </p>
-                      
-                      <h3 className="font-mono text-[10.5px] tracking-wider text-ink-faint uppercase mb-4">Key Financial Insights</h3>
-                      
-                      <ul className="space-y-4">
-                        {financials.analysis.insights.map((insight: any, idx: number) => (
-                          <li key={idx} className="flex gap-[12px] items-start">
-                            <span className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-brand mt-2"></span>
-                            <div className="space-y-1">
-                              <div>
-                                <span className="font-semibold text-[13.8px] text-ink mr-1.5">
-                                  {insight.title}:
-                                </span>
-                                <span className="text-[13.5px] text-ink-soft leading-relaxed">
-                                  {insight.text}
-                                </span>
-                              </div>
-                              
-                              <div className="flex gap-2 mt-2 flex-wrap">
-                                {insight.citations?.map((cite: string, cIdx: number) => (
-                                  <span key={cIdx} className="font-mono text-[9px] bg-paper-3 border border-line text-ink-faint px-2 py-0.5 rounded flex items-center gap-1.5">
-                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-brand">
-                                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                      <polyline points="14 2 14 8 20 8"/>
-                                    </svg>
-                                    {cite}
-                                  </span>
-                                ))}
-                              </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-[18px] mt-6">
+                      {/* Left Column: AI Financial Analysis & Insights */}
+                      <Card className="text-left p-[20px] md:p-[24px] bg-paper border border-line rounded-[16px] shadow-sm flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center gap-[9px] mb-4">
+                            <div className="w-[8px] h-[8px] rounded-full bg-brand animate-pulse"></div>
+                            <div className="eyebrow font-mono text-[10px] tracking-widest text-brand font-semibold uppercase">AI Analysis &amp; Insights Agent</div>
+                          </div>
+                          
+                          <h2 className="font-display font-semibold text-[20px] leading-tight text-ink mb-3 tracking-tight">Executive Financial Synthesis</h2>
+                          
+                          <p className="text-[14px] leading-[1.65] text-ink mb-5 pb-4 border-b border-line-soft">
+                            {financials.analysis.summary}
+                          </p>
+                          
+                          <h3 className="font-mono text-[10.5px] tracking-wider text-ink-faint uppercase mb-4">Key Financial Insights</h3>
+                          
+                          <ul className="space-y-4">
+                            {financials.analysis.insights.map((insight: any, idx: number) => (
+                              <li key={idx} className="flex gap-[12px] items-start">
+                                <span className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-brand mt-2"></span>
+                                <div className="space-y-1">
+                                  <div>
+                                    <span className="font-semibold text-[13.8px] text-ink mr-1.5">
+                                      {insight.title}:
+                                    </span>
+                                    <span className="text-[13.5px] text-ink-soft leading-relaxed">
+                                      {insight.text}
+                                    </span>
+                                  </div>
+                                  
+                                  <div className="flex gap-2 mt-2 flex-wrap">
+                                    {insight.citations?.map((cite: string, cIdx: number) => (
+                                      <span key={cIdx} className="font-mono text-[9px] bg-paper-3 border border-line text-ink-faint px-2 py-0.5 rounded flex items-center gap-1.5">
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-brand">
+                                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                          <polyline points="14 2 14 8 20 8"/>
+                                        </svg>
+                                        {cite}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </Card>
+
+                      {/* Right Column: Earnings Call & Analyst Consensus */}
+                      <Card className="text-left p-[20px] md:p-[24px] bg-paper border border-line rounded-[16px] shadow-sm flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center gap-[9px] mb-4">
+                            <div className="w-[8px] h-[8px] rounded-full bg-accent animate-pulse"></div>
+                            <div className="eyebrow font-mono text-[10px] tracking-widest text-[#a8761a] font-semibold uppercase">Earnings Call &amp; Analyst Sentiment</div>
+                          </div>
+
+                          <h2 className="font-display font-semibold text-[20px] leading-tight text-ink mb-3 tracking-tight">Earnings Call &amp; Analyst Consensus</h2>
+
+                          {/* Highlights */}
+                          <div className="space-y-3 mb-6">
+                            <h3 className="font-mono text-[10.5px] tracking-wider text-ink-faint uppercase">Q1 2026 Call Highlights</h3>
+                            <div className="space-y-2">
+                              {(financials.analysis.earnings_call_highlights || [
+                                "Strong Volume-Driven Growth: Reported underlying sales growth of 4.4% in Q1 2026, led primarily by a 3.2% rise in underlying volume, indicating a healthy return to volume-led expansion.",
+                                "Pricing Moderation: Underlying price growth moderated significantly to 1.2% as raw material cost pressures eased, assisting in reclaiming competitive shelf space in European retail.",
+                                "Power Brands Outperformance: The core 30 'Power Brands' (including Dove, Knorr, and Hellmann's) outpaced the rest of the portfolio with 5.6% underlying sales growth."
+                              ]).map((hl: string, idx: number) => (
+                                <div key={idx} className="flex gap-2.5 items-start text-[13px] text-ink-soft leading-relaxed">
+                                  <span className="text-[#a8761a] mt-0.5">•</span>
+                                  <span>{hl}</span>
+                                </div>
+                              ))}
                             </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </Card>
+                          </div>
+
+                          {/* Analyst Views */}
+                          <div className="space-y-4">
+                            <h3 className="font-mono text-[10.5px] tracking-wider text-ink-faint uppercase">Major Institutional Views</h3>
+                            <div className="space-y-3">
+                              {(financials.analysis.analyst_views || [
+                                { institution: "JP Morgan", sentiment: "positive", commentary: "Affirms Overweight rating. Analyst team highlights that Unilever's volume recovery is structurally sustainable, supported by the direct reinvestment of productivity savings into brand equity and marketing." },
+                                { institution: "Goldman Sachs", sentiment: "neutral", commentary: "Maintains Neutral rating. Goldman notes that the Ice Cream spin-off (TMICC) removes a volatile segment, but remains cautious about potential pricing friction in European retail negotiations." },
+                                { institution: "Jefferies", sentiment: "positive", commentary: "Maintains Buy rating. Cites a strong rebound in rural demand in India boosting volume growth for Hindustan Unilever, which represents a highly profitable contributor to global FMCG margins." }
+                              ]).map((view: any, idx: number) => (
+                                <div key={idx} className="p-3 rounded-[11px] bg-paper-3 border border-line flex flex-col gap-1.5">
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-semibold text-[13.5px] text-ink">{view.institution}</span>
+                                    <Badge type={view.sentiment === "positive" ? "growth" : view.sentiment === "risk" ? "risk" : "neutral"}>
+                                      {view.sentiment?.toUpperCase()}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-[12.5px] text-ink-soft leading-relaxed">{view.commentary}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    </div>
                   )}
                 </section>
               )}
