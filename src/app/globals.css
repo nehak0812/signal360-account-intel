@@ -132,7 +132,10 @@ body::after {
   body::after {
     display: none !important;
   }
-  .app, header, aside, .topbar, button, .iconbtn, .scrim {
+  .app {
+    display: block !important;
+  }
+  .sidebar, .main, button, .iconbtn, .scrim {
     display: none !important;
   }
   .modal {
