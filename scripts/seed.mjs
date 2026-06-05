@@ -223,6 +223,87 @@ async function main() {
     }
   });
 
+  // 5.5 Create Financial Metrics for Unilever (filings-sourced data)
+  console.log("Seeding Financial Metrics for Unilever...");
+  await prisma.financialMetric.deleteMany({ where: { entityId: unilever.id } });
+  const metrics = [
+    {
+      period: "FY2025",
+      metric: "turnover",
+      value: 59600000000.0,
+      unit: "EUR",
+      yoyChange: 0.015,
+      source: JSON.stringify({ publisher: "Unilever FY2025 SEC 20-F", url: "https://www.unilever.com/investor-relations/", page: "Page 42" }),
+      filedAt: new Date("2026-02-12T08:00:00Z"),
+    },
+    {
+      period: "FY2025",
+      metric: "operating_margin",
+      value: 0.168,
+      unit: "%",
+      yoyChange: 0.003,
+      source: JSON.stringify({ publisher: "Unilever FY2025 SEC 20-F", url: "https://www.unilever.com/investor-relations/", page: "Page 43" }),
+      filedAt: new Date("2026-02-12T08:00:00Z"),
+    },
+    {
+      period: "FY2025",
+      metric: "free_cash_flow",
+      value: 5900000000.0,
+      unit: "EUR",
+      yoyChange: 0.08,
+      source: JSON.stringify({ publisher: "Unilever FY2025 SEC 20-F", url: "https://www.unilever.com/investor-relations/", page: "Page 45" }),
+      filedAt: new Date("2026-02-12T08:00:00Z"),
+    },
+    {
+      period: "FY2025",
+      metric: "dividend",
+      value: 0.034,
+      unit: "%",
+      yoyChange: 0.03,
+      source: JSON.stringify({ publisher: "Unilever FY2025 SEC 20-F", url: "https://www.unilever.com/investor-relations/", page: "Page 48" }),
+      filedAt: new Date("2026-02-12T08:00:00Z"),
+    },
+    {
+      period: "FY2025",
+      metric: "gross_margin",
+      value: 0.42,
+      unit: "%",
+      source: JSON.stringify({ publisher: "Unilever FY2025 SEC 20-F", url: "https://www.unilever.com/investor-relations/", page: "Page 42" }),
+      filedAt: new Date("2026-02-12T08:00:00Z"),
+    },
+    {
+      period: "FY2025",
+      metric: "roic",
+      value: 0.254,
+      unit: "%",
+      source: JSON.stringify({ publisher: "Unilever FY2025 SEC 20-F", url: "https://www.unilever.com/investor-relations/", page: "Page 50" }),
+      filedAt: new Date("2026-02-12T08:00:00Z"),
+    },
+    {
+      period: "FY2025",
+      metric: "net_debt",
+      value: 120.0,
+      unit: "%",
+      source: JSON.stringify({ publisher: "Unilever FY2025 SEC 20-F", url: "https://www.unilever.com/investor-relations/", page: "Page 52" }),
+      filedAt: new Date("2026-02-12T08:00:00Z"),
+    }
+  ];
+
+  for (const m of metrics) {
+    await prisma.financialMetric.create({
+      data: {
+        entityId: unilever.id,
+        period: m.period,
+        metric: m.metric,
+        value: m.value,
+        unit: m.unit,
+        yoyChange: m.yoyChange,
+        source: m.source,
+        filedAt: m.filedAt,
+      }
+    });
+  }
+
   // 6. Create computed scores row
   await prisma.score.create({
     data: {
