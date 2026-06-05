@@ -55,13 +55,13 @@ export async function GET(
       }
     }
 
-    // Build highly relevant query strings for Geos & Industry
+    // Build highly relevant query strings for Geos & Industry (100% macro/environmental, no company names)
     const queries = [
-      // 1. Company in key operating markets (focus on live regional updates)
-      `"${cleanedName}" (Europe OR UK OR Asia OR "North America" OR US)`,
-      // 2. Dynamic developments in relevant sectors across these geos
-      `(${industryTerms}) (Europe OR UK OR Asia OR US) (retail OR "supply chain" OR trend OR sales)`,
-      // 3. Macro economic and regulatory factors (e.g. inflation, packaging rules, green claims)
+      // 1. Regional macro-economic indicators (consumer spending, inflation, retail market trends in key geos)
+      `(${industryTerms}) (Europe OR UK OR Asia OR US) ("consumer spending" OR "inflation" OR "retail market")`,
+      // 2. Supply chain, sustainability and sector-wide developments
+      `(${industryTerms}) (Europe OR UK OR Asia OR US) ("supply chain" OR "sustainability" OR "trend" OR "sales growth")`,
+      // 3. Geopolitical and regulatory environment (tariffs, packaging rules, green claims, macro economy)
       `(${industryTerms}) (geopolitics OR "macro economy" OR inflation OR regulation OR regulatory)`
     ];
 
