@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import YahooFinance from "yahoo-finance2";
+import { generateMockOfficers } from "@/lib/agents/fallback-generator";
 
 const yahooFinance = new YahooFinance();
 
@@ -65,6 +66,23 @@ export async function GET(
         }));
       } catch (dbErr) {
         console.error("DB query failed for active team:", dbErr);
+      }
+    }
+
+    // Dynamic AI Fallback if both database and Yahoo Finance are empty
+    if (executives.length === 0) {
+      try {
+        console.log(`Generating AI mock officers for ${entity.displayName}...`);
+        const fallbackOfficers = await generateMockOfficers(entity.displayName);
+        executives = fallbackOfficers.map((o, idx) => ({
+          id: `exec-mock-${idx}`,
+          full_name: o.name,
+          role_title: o.title,
+          is_current: true,
+          pay: null
+        }));
+      } catch (genErr) {
+        console.error("AI officers fallback failed:", genErr);
       }
     }
 

@@ -4,6 +4,7 @@ import Parser from "rss-parser";
 import YahooFinance from "yahoo-finance2";
 import { ai, DEFAULT_MODEL } from "@/lib/gemini";
 import { Type } from "@google/genai";
+import { generateMockOfficers } from "@/lib/agents/fallback-generator";
 
 const yahooFinance = new YahooFinance();
 
@@ -62,13 +63,15 @@ export async function GET(
       }
     }
 
-    // Default static fallback if both fail
+    // Dynamic AI Fallback if both database and Yahoo Finance are empty
     if (officers.length === 0) {
-      officers = [
-        { name: "Hein Schumacher", title: "Chief Executive Officer" },
-        { name: "Fernando Fernandez", title: "Chief Financial Officer" },
-        { name: "Richard Slater", title: "Chief R&D Officer" }
-      ];
+      try {
+        console.log(`Generating AI mock officers for linkedin-voices fallback: ${entity.displayName}...`);
+        const fallbackOfficers = await generateMockOfficers(entity.displayName);
+        officers = fallbackOfficers;
+      } catch (genErr) {
+        console.error("AI officers fallback failed in linkedin-voices:", genErr);
+      }
     }
 
     // 3. Fetch latest news RSS

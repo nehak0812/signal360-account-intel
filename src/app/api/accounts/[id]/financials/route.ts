@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import YahooFinance from "yahoo-finance2";
 import { ai, DEFAULT_MODEL } from "@/lib/gemini";
 import { Type } from "@google/genai";
+import { generateMockFinancials } from "@/lib/agents/fallback-generator";
 
 const yahooFinance = new YahooFinance();
 
@@ -312,28 +313,16 @@ export async function GET(
     }
 
     // 4. Global Mock Fallbacks if database is empty AND Yahoo Finance failed/was blocked
-    if (kpis.length === 0) {
-      kpis.push(
-        { metric: "turnover", label: "Turnover (FY2025)", value: "€59.6B", yoy: "▲ 1.5% YoY", sourceName: "Unilever FY2025 SEC 20-F", sourceUrl: "#" },
-        { metric: "operating_margin", label: "Operating Margin", value: "16.8%", yoy: "FY2025", sourceName: "Unilever FY2025 SEC 20-F", sourceUrl: "#" },
-        { metric: "free_cash_flow", label: "Free Cash Flow", value: "€5.9B", yoy: "FY2025", sourceName: "Unilever FY2025 SEC 20-F", sourceUrl: "#" },
-        { metric: "dividend", label: "Dividend Yield", value: "3.4%", yoy: "FY2025", sourceName: "Unilever FY2025 SEC 20-F", sourceUrl: "#" }
-      );
-    }
-
-    if (ratios.length === 0) {
-      ratios.push(
-        { metric: "gross_margin", label: "Gross Margin", value: "42.0%", sourceName: "Unilever FY2025 SEC 20-F", sourceUrl: "#" },
-        { metric: "roic", label: "Return on Equity", value: "25.4%", sourceName: "Unilever FY2025 SEC 20-F", sourceUrl: "#" },
-        { metric: "net_debt", label: "Debt to Equity", value: "120.0%", sourceName: "Unilever FY2025 SEC 20-F", sourceUrl: "#" }
-      );
-    }
-
-    if (what_changed.length === 0) {
-      what_changed = [
-        { label: "Ice Cream separation completed", text: "Spin-off of Ben & Jerry's and Magnum finished in late 2025. Retaining 19.9% stake.", dir: "flat" },
-        { label: "Foods combination with McCormick", text: "Consolidation of food brands to sharpen beauty/personal care margins.", dir: "up" }
-      ];
+    if (kpis.length === 0 || ratios.length === 0 || what_changed.length === 0) {
+      try {
+        console.log(`Generating AI financial fallbacks for ${entity.displayName}...`);
+        const fallbackData = await generateMockFinancials(entity.displayName);
+        if (kpis.length === 0) kpis.push(...fallbackData.kpis);
+        if (ratios.length === 0) ratios.push(...fallbackData.ratios);
+        if (what_changed.length === 0) what_changed = fallbackData.what_changed;
+      } catch (genErr) {
+        console.error("AI financial fallback failed:", genErr);
+      }
     }
 
     // 5. Generate AI Financial Analysis & Insights
