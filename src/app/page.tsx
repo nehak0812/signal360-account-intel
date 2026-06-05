@@ -1516,6 +1516,54 @@ export default function SignalDashboard() {
                       </Card>
                     ))}
                   </div>
+
+                  {/* AI Financial Analysis & Insights */}
+                  {financials?.analysis && (
+                    <Card className="text-left p-[20px] md:p-[24px] bg-paper border border-line rounded-[16px] shadow-sm mt-6">
+                      <div className="flex items-center gap-[9px] mb-4">
+                        <div className="w-[8px] h-[8px] rounded-full bg-brand animate-pulse"></div>
+                        <div className="eyebrow font-mono text-[10px] tracking-widest text-brand font-semibold uppercase">AI Analysis &amp; Insights Agent</div>
+                      </div>
+                      
+                      <h2 className="font-display font-semibold text-[20px] leading-tight text-ink mb-3 tracking-tight">Executive Financial Synthesis</h2>
+                      
+                      <p className="text-[14.2px] leading-[1.65] text-ink mb-5 pb-4 border-b border-line-soft">
+                        {financials.analysis.summary}
+                      </p>
+                      
+                      <h3 className="font-mono text-[10.5px] tracking-wider text-ink-faint uppercase mb-4">Key Financial Insights</h3>
+                      
+                      <ul className="space-y-4">
+                        {financials.analysis.insights.map((insight: any, idx: number) => (
+                          <li key={idx} className="flex gap-[12px] items-start">
+                            <span className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-brand mt-2"></span>
+                            <div className="space-y-1">
+                              <div>
+                                <span className="font-semibold text-[13.8px] text-ink mr-1.5">
+                                  {insight.title}:
+                                </span>
+                                <span className="text-[13.5px] text-ink-soft leading-relaxed">
+                                  {insight.text}
+                                </span>
+                              </div>
+                              
+                              <div className="flex gap-2 mt-2 flex-wrap">
+                                {insight.citations?.map((cite: string, cIdx: number) => (
+                                  <span key={cIdx} className="font-mono text-[9px] bg-paper-3 border border-line text-ink-faint px-2 py-0.5 rounded flex items-center gap-1.5">
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-brand">
+                                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                      <polyline points="14 2 14 8 20 8"/>
+                                    </svg>
+                                    {cite}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </Card>
+                  )}
                 </section>
               )}
 
