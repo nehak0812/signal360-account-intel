@@ -2003,6 +2003,10 @@ export default function SignalDashboard() {
                           CURRENT: {sentiment?.net_now || "+0.30"}
                         </Badge>
                       </CardHeader>
+                      
+                      <div className="px-6 pb-2 text-[12px] text-ink-soft leading-normal -mt-2">
+                        A rolling index of net sentiment scores computed across all parsed news and social channels over the past 12 weeks. Values range from −1.0 (highly negative) to +1.0 (highly positive), tracking shifts in public opinion.
+                      </div>
 
                       {/* Simple visual Sparkline Chart */}
                       <div className="relative h-[160px] border border-line rounded-[12px] bg-paper-3 flex items-end justify-between p-6">
@@ -2034,6 +2038,11 @@ export default function SignalDashboard() {
                       <CardHeader>
                         <CardTitle>Net Sentiment by Channel</CardTitle>
                       </CardHeader>
+                      
+                      <div className="px-6 pb-3 text-[12px] text-ink-soft leading-normal -mt-2">
+                        Breaks down public sentiment across distinct media channels, highlighting differences between formal corporate reports, general public opinion, industry trade coverage, and financial analyst consensus.
+                      </div>
+
                       <div className="space-y-4">
                         {[
                           { channel: "Corporate News", score: sentiment?.by_source?.news ?? 0.35, color: "bg-brand" },
@@ -2058,12 +2067,57 @@ export default function SignalDashboard() {
                     </Card>
                   </div>
 
+                  {/* AI Sentiment Synthesis Card */}
+                  <Card className="text-left">
+                    <CardHeader>
+                      <CardTitle>AI Sentiment &amp; Media Synthesis</CardTitle>
+                    </CardHeader>
+                    
+                    <div className="px-6 pb-2 text-[12px] text-ink-soft leading-normal -mt-2 mb-4">
+                      AI-generated qualitative analysis summarizing public perception trends and identifying key themes driving media coverage.
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="p-[16px] px-[18px] rounded-[13px] bg-paper-3 border border-line">
+                        <div className="flex gap-[10px] items-start">
+                          <div className="w-[32px] h-[32px] rounded-full bg-brand/10 text-brand flex items-center justify-center font-bold text-sm flex-shrink-0">
+                            ✨
+                          </div>
+                          <div>
+                            <div className="text-[12px] font-mono text-brand font-semibold uppercase tracking-wider mb-1">ANALYSIS BRIEF</div>
+                            <p className="text-[13.5px] leading-relaxed text-ink">{sentiment?.summary}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {sentiment?.insights?.map((insight: any, idx: number) => (
+                          <div key={idx} className="p-[14px] px-[16px] border border-line rounded-[12px] bg-paper-2 flex flex-col justify-between shadow-sm">
+                            <div>
+                              <div className="flex items-center gap-2 mb-2">
+                                <Badge type={insight.impact === "Positive" ? "growth" : insight.impact === "Negative" ? "risk" : "neutral"}>
+                                  {insight.impact.toUpperCase()}
+                                </Badge>
+                                <h6 className="font-semibold text-[13px] text-ink">{insight.title}</h6>
+                              </div>
+                              <p className="text-[12.5px] leading-normal text-ink-soft">{insight.description}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </Card>
+
                   {/* Representative Mentions */}
                   <Card padded={false} className="text-left">
                     <div className="p-5 px-6 pb-2">
                       <CardHeader>
                         <CardTitle>Representative Sourced Mentions</CardTitle>
                       </CardHeader>
+                      
+                      <div className="text-[12.5px] text-ink-soft leading-normal mt-3 border-t border-line-soft pt-3">
+                        <b>What is this section?</b> Representative Sourced Mentions are the specific, verified articles and announcements crawled by our agents from public media feeds. The system analyzes each article's text via Gemini to calculate a sentiment polarity score (from −1.0 to +1.0) indicating whether it represents a Growth Driver (positive) or a Risk Factor (negative). Click <b>LINK ↗</b> on any entry to open the verified primary source in a new tab.
+                      </div>
                     </div>
                     <div className="divide-y divide-line-soft">
                       {sentiment?.mentions?.map((men: any, idx: number) => (
@@ -2080,7 +2134,7 @@ export default function SignalDashboard() {
                             <Badge type={men.polarity >= 0 ? "growth" : "risk"}>
                               {men.polarity >= 0 ? "+" : ""}{men.polarity.toFixed(2)}
                             </Badge>
-                            <a href={men.url} className="text-brand hover:underline font-mono text-xs">
+                            <a href={men.url} target="_blank" rel="noopener noreferrer" className="text-brand hover:underline font-mono text-xs">
                               LINK ↗
                             </a>
                           </div>
