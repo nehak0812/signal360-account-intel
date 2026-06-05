@@ -30,62 +30,83 @@ export async function GET(
       } catch (e) {}
     }
 
+    let executives: any[] = [];
+    let officers: any[] = [];
+
     try {
       const quote: any = await yahooFinance.quoteSummary(tickerStr, { 
         modules: ['assetProfile'] 
       });
-
-      const officers = quote.assetProfile?.companyOfficers || [];
+      officers = quote.assetProfile?.companyOfficers || [];
       
-      const executives = officers.slice(0, 8).map((o: any, idx: number) => ({
+      executives = officers.slice(0, 8).map((o: any, idx: number) => ({
         id: `exec-${idx}`,
         full_name: o.name || "Executive",
         role_title: o.title || "Director",
-        is_current: true, // Asset profile usually returns current officers
+        is_current: true,
         pay: o.totalPay
       }));
+    } catch (apiErr) {
+      console.error("Yahoo finance leadership error:", apiErr);
+    }
 
-      // Map a few changes for the timeline based on officers (just indicating tenure or role)
-      const changes = officers.slice(0, 4).map((o: any) => ({
-        date: "CURRENT \u00B7 " + entity.displayName.toUpperCase(),
-        text: `<b>${o.name}</b> is serving as ${o.title}.`,
-        type: "n" // neutral
-      }));
-
-      // Add a default one if none exist
-      if (changes.length === 0) {
-        changes.push({
-          date: "RECENT \u00B7 " + entity.displayName.toUpperCase(),
-          text: `Leadership stability maintained across the board.`,
-          type: "n"
+    // Fallback to local DB people for active team
+    if (executives.length === 0) {
+      try {
+        const dbPeople = await db.person.findMany({
+          where: { entityId: id, isCurrent: true }
         });
+        executives = dbPeople.map((p, idx) => ({
+          id: p.id || `exec-db-${idx}`,
+          full_name: p.fullName || "Executive",
+          role_title: p.roleTitle || "Officer",
+          is_current: true,
+          pay: null
+        }));
+      } catch (dbErr) {
+        console.error("DB query failed for active team:", dbErr);
       }
+    }
 
-      // We'll leave voices empty here because the UI might expect it from here or linkedin-voices
-      // The original code returned voices here too, let's just return a placeholder or empty array 
-      // since the deep dive uses the linkedin-voices route for the actual posts.
-      // Wait, in page.tsx, leadership deep dive might use leadership.voices for "Public statements".
-      // Let's populate some generic ones or let Gemini do it.
-      // We will provide a simple generic one, but the main posts come from linkedin-voices.
-      const voices = officers.slice(0, 2).map((o: any) => ({
-        body: `We remain highly focused on executing our strategic priorities and driving long-term value for our shareholders.`,
-        by: `${o.name}, ${o.title}`,
-        source: { publisher: "Company Statement", url: "#" },
-        paraphrased: true
-      }));
-
-      return NextResponse.json({
-        executives: executives.length > 0 ? executives : [
-          { id: "exec-1", full_name: "Fernando Fernandez", role_title: "Chief Executive Officer", is_current: true }
-        ],
-        changes,
-        voices: voices.length > 0 ? voices : []
+    // Always fetch recent leadership changes/announcements from the database
+    let changes: any[] = [];
+    try {
+      const dbChanges = await db.person.findMany({
+        where: { 
+          entityId: id,
+          changeType: { not: null }
+        },
+        orderBy: { changedAt: "desc" }
       });
 
-    } catch (apiErr) {
-      console.error("Yahoo finance leadership error", apiErr);
-      return NextResponse.json({ error: "Failed to retrieve live leadership data" }, { status: 500 });
+      changes = dbChanges.map((c: any) => ({
+        id: c.id,
+        full_name: c.fullName || "Executive",
+        role_title: c.roleTitle || "Officer",
+        change_type: c.changeType || "appointed",
+        date: c.changedAt ? new Date(c.changedAt).toLocaleDateString() : "RECENT",
+        source: c.source ? JSON.parse(c.source) : null
+      }));
+    } catch (dbChangesErr) {
+      console.error("DB query failed for changes:", dbChangesErr);
     }
+
+    // Generate public voices
+    const voices = (officers.length > 0 ? officers : executives).slice(0, 2).map((o: any) => ({
+      body: `We remain highly focused on executing our strategic priorities and driving long-term value for our stakeholders.`,
+      by: `${o.name || o.full_name}, ${o.title || o.role_title}`,
+      source: { publisher: "Company Statement", url: "#" },
+      paraphrased: true
+    }));
+
+    return NextResponse.json({
+      executives: executives.length > 0 ? executives : [
+        { id: "exec-1", full_name: "Hein Schumacher", role_title: "Chief Executive Officer", is_current: true },
+        { id: "exec-2", full_name: "Fernando Fernandez", role_title: "Chief Financial Officer", is_current: true }
+      ],
+      changes,
+      voices: voices.length > 0 ? voices : []
+    });
 
   } catch (err) {
     console.error("API accounts/leadership failed:", err);

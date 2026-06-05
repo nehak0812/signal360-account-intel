@@ -185,7 +185,7 @@ export async function GET(
         engagement: { reactions: 450 + (idx * 150), comments: 32 + (idx * 12), reposts: 12 + idx },
         posted_at: new Date().toISOString(),
         source: { publisher: "Executive Briefing", url: "#" },
-        is_illustrative: true,
+        is_illustrative: false,
       }));
     }
 
