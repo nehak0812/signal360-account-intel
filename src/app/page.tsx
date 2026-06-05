@@ -1462,6 +1462,84 @@ export default function SignalDashboard() {
                       </div>
                     </div>
                   </div>
+
+                  {/* Qualitative Synthesis & Strategic Intelligence */}
+                  <Card>
+                    <CardHeader className="flex justify-between w-full pb-[10px]">
+                      <div className="flex items-center gap-[10px]">
+                        <div className="w-[30px] h-[30px] rounded-[9px] bg-paper-3 border border-line flex items-center justify-center text-brand">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" className="w-[15px] h-[15px]">
+                            <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+                          </svg>
+                        </div>
+                        <CardTitle>Analysis &amp; Insights Agent: Qualitative Synthesis</CardTitle>
+                      </div>
+                      <span className="ml-auto font-mono text-[9.5px] text-brand bg-brand/10 px-2 py-0.5 rounded-[4px] font-semibold uppercase tracking-wider">
+                        Strategic Intelligence
+                      </span>
+                    </CardHeader>
+
+                    <div className="text-left space-y-5">
+                      {mapData?.summary && (
+                        <p className="text-[14.2px] leading-relaxed text-ink border-l-2 border-brand pl-3 italic font-body">
+                          {mapData.summary}
+                        </p>
+                      )}
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-[24px] pt-2">
+                        {/* Emerging Growth Themes */}
+                        <div className="space-y-[12px]">
+                          <div className="flex items-center gap-[8px] border-b border-line-soft pb-2">
+                            <span className="w-2 h-2 rounded-full bg-growth animate-pulse-slow"></span>
+                            <h4 className="font-semibold font-display text-[15px] text-ink uppercase tracking-wide">Emerging Growth Themes</h4>
+                          </div>
+
+                          <div className="space-y-[12px]">
+                            {mapData?.growth_insights?.map((item: any, idx: number) => (
+                              <div key={idx} className="p-[14px] bg-growth/5 border border-growth/10 rounded-[12px] space-y-2">
+                                <div className="flex justify-between items-start gap-2">
+                                  <h5 className="font-semibold text-[13.5px] text-growth">{item.theme}</h5>
+                                  <Badge type="growth" className="text-[9px] font-mono uppercase px-1.5 py-0.5 whitespace-nowrap">{item.strategic_value}</Badge>
+                                </div>
+                                <p className="text-[12.8px] leading-[1.5] text-ink-soft">{item.description}</p>
+                                <div className="text-[10px] font-mono text-ink-faint">Timeline: {item.timeline}</div>
+                              </div>
+                            ))}
+                            {(!mapData?.growth_insights || mapData.growth_insights.length === 0) && (
+                              <p className="text-sm text-ink-faint italic">No growth insights synthesized yet.</p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Emerging Risk Areas */}
+                        <div className="space-y-[12px]">
+                          <div className="flex items-center gap-[8px] border-b border-line-soft pb-2">
+                            <span className="w-2 h-2 rounded-full bg-risk animate-pulse-slow"></span>
+                            <h4 className="font-semibold font-display text-[15px] text-ink uppercase tracking-wide">Emerging Risk Areas</h4>
+                          </div>
+
+                          <div className="space-y-[12px]">
+                            {mapData?.risk_insights?.map((item: any, idx: number) => (
+                              <div key={idx} className="p-[14px] bg-risk/5 border border-risk/10 rounded-[12px] space-y-2">
+                                <div className="flex justify-between items-start gap-2">
+                                  <h5 className="font-semibold text-[13.5px] text-risk">{item.area}</h5>
+                                  <Badge type="risk" className="text-[9px] font-mono uppercase px-1.5 py-0.5 whitespace-nowrap">{item.vulnerability_level}</Badge>
+                                </div>
+                                <p className="text-[12.8px] leading-[1.5] text-ink-soft">{item.description}</p>
+                                <div className="text-[11px] leading-[1.4] text-ink-soft bg-paper-3/50 p-2.5 rounded border border-line-soft mt-1">
+                                  <span className="font-mono text-[9px] text-ink font-semibold uppercase tracking-wider block mb-0.5">Mitigation Recommendation:</span>
+                                  {item.mitigation}
+                                </div>
+                              </div>
+                            ))}
+                            {(!mapData?.risk_insights || mapData.risk_insights.length === 0) && (
+                              <p className="text-sm text-ink-faint italic">No risk insights synthesized yet.</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
                 </section>
               )}
 
