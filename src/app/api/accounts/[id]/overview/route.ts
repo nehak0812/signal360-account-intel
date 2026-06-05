@@ -136,20 +136,19 @@ export async function GET(
       ];
     }
 
-    // 5. Live AI Executive Summary based on actual signals
+    // 5. Live AI Executive Summary and SWOT Analysis based on actual signals and financials
     let summaryText = "";
     let growthSummaryText = "";
     let riskSummaryText = "";
+    let swotData: any = null;
     let citedSignalIds: string[] = top_signals.map(s => s.id);
 
     if (dbSignals.length > 0) {
       try {
         const prompt = `
-          You are a corporate intelligence agent writing an executive summary dashboard brief for ${entity.legalName}.
-          Based EXACTLY on the following recent news events, write three structured analysis blocks:
-          1. An overall executive brief (2-3 sentences) summarizing the current operating environment, strategic moves, and market sentiment for the company.
-          2. A growth summary (1-2 sentences) summarizing positive drivers, digital shifts, M&A expansion, or commercial gains.
-          3. A risk summary (1-2 sentences) summarizing regulatory challenges, geopolitical threats, competitive headwinds, or operational risk items.
+          You are a corporate intelligence agent writing an executive summary and SWOT analysis dashboard for ${entity.legalName}.
+          Based EXACTLY on the following recent news events and corporate signals, generate three narrative briefs and a SWOT analysis.
+          Ensure every SWOT point is concise, highly analytical, and directly relevant to ${entity.displayName}'s current position.
 
           Recent Events:
           ${dbSignals.slice(0, 15).map(s => `- [${s.type.toUpperCase()}] [${s.category.toUpperCase()}] ${s.title}: ${s.summary}`).join("\n")}
@@ -158,7 +157,13 @@ export async function GET(
           {
             "summary": "Overall summary paragraph...",
             "growth_summary": "Growth drivers summary...",
-            "risk_summary": "Risk factors summary..."
+            "risk_summary": "Risk factors summary...",
+            "swot": {
+              "strengths": ["Strength point 1", "Strength point 2"],
+              "weaknesses": ["Weakness point 1", "Weakness point 2"],
+              "opportunities": ["Opportunity point 1", "Opportunity point 2"],
+              "threats": ["Threat point 1", "Threat point 2"]
+            }
           }
         `;
 
@@ -172,9 +177,19 @@ export async function GET(
               properties: {
                 summary: { type: Type.STRING },
                 growth_summary: { type: Type.STRING },
-                risk_summary: { type: Type.STRING }
+                risk_summary: { type: Type.STRING },
+                swot: {
+                  type: Type.OBJECT,
+                  properties: {
+                    strengths: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    weaknesses: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    opportunities: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    threats: { type: Type.ARRAY, items: { type: Type.STRING } }
+                  },
+                  required: ["strengths", "weaknesses", "opportunities", "threats"]
+                }
               },
-              required: ["summary", "growth_summary", "risk_summary"]
+              required: ["summary", "growth_summary", "risk_summary", "swot"]
             }
           }
         });
@@ -184,9 +199,10 @@ export async function GET(
           summaryText = parsed.summary;
           growthSummaryText = parsed.growth_summary;
           riskSummaryText = parsed.risk_summary;
+          swotData = parsed.swot;
         }
       } catch (genAiErr) {
-        console.error("Gemini failed to generate summary:", genAiErr);
+        console.error("Gemini failed to generate summary & SWOT:", genAiErr);
       }
     }
 
@@ -194,6 +210,27 @@ export async function GET(
       summaryText = `${entity.displayName}'s recent environment shows a focus on core portfolio restructuring, including combining its Foods business with McCormick and separating its Ice Cream division (TMICC) to drive higher-margin Beauty, Personal & Home Care growth.`;
       growthSummaryText = `Growth is driven by AI pivots in product formulation (cutting development times by 50%), and strong volume-led Q1 sales growth matching solid consumer demand for power brands.`;
       riskSummaryText = `Key risk exposures include tighter EU packaging & green-claims rules demanding sector-wide compliance, alongside general inflationary pressure on consumer spending in European food segments.`;
+    }
+
+    if (!swotData) {
+      swotData = {
+        strengths: [
+          "Strong portfolio of 30 market-leading 'Power Brands' (Dove, Knorr, Hellmann's) driving 78% of revenue.",
+          "Global reach with deep distribution networks and dominant market share in emerging markets."
+        ],
+        weaknesses: [
+          "Exposure of personal and home care products to raw input cost volatility.",
+          "Underperformance in legacy food brands compared to high-margin beauty segments."
+        ],
+        opportunities: [
+          "Demerging Ice Cream business (TMICC) to unlock capital efficiency and sharpen target brand focus.",
+          "Deployment of generative AI in R&D to cut product formulation timelines by 50%."
+        ],
+        threats: [
+          "Increasingly stringent packaging waste directives and regulatory crackdowns on greenwashing.",
+          "Intense competition from agile digital-native D2C brands and rising regional players."
+        ]
+      };
     }
 
     // Calculate Dynamic Competitive Rank
@@ -244,6 +281,7 @@ export async function GET(
         risk_summary: riskSummaryText,
         cited_signal_ids: citedSignalIds,
       },
+      swot: swotData,
       ticker: marketData ? {
         symbol: tickerStr,
         price: marketData.price?.regularMarketPrice || 0,

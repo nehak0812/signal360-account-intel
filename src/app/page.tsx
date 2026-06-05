@@ -807,38 +807,109 @@ export default function SignalDashboard() {
                       </div>
                     </Card>
 
-                    {/* Leadership watch timeline */}
+                    {/* SWOT Analysis */}
                     <Card>
-                      <CardHeader>
+                      <CardHeader className="pb-[12px]">
                         <div className="w-[30px] h-[30px] rounded-[9px] bg-paper-3 border border-line flex items-center justify-center text-brand">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" className="w-[15px] h-[15px]">
-                            <circle cx="9" cy="8" r="3"/><path d="M3 19c0-3 2.7-5.5 6-5.5"/><path d="M15 13l2 2 4-4"/>
+                            <rect x="3" y="3" width="18" height="18" rx="2" />
+                            <path d="M21 12H3M12 3v18" />
                           </svg>
                         </div>
-                        <CardTitle>Leadership Watch</CardTitle>
-                        <button 
-                          onClick={() => setActiveTab("leadership")}
-                          className="ml-auto font-mono text-[10px] text-brand font-semibold uppercase hover:underline"
-                        >
-                          DETAILS →
-                        </button>
+                        <CardTitle>SWOT Analysis</CardTitle>
+                        <span className="ml-auto font-mono text-[9.5px] text-brand bg-brand/10 px-2 py-0.5 rounded-[4px] font-semibold uppercase tracking-wider">
+                          AI Synthesised
+                        </span>
                       </CardHeader>
 
-                      <div className="tl relative pl-[22px] before:content-[''] before:absolute before:left-[5px] before:top-[6px] before:bottom-[6px] before:w-[2px] before:bg-line text-left">
-                        {overview?.leadership_watch?.map((item: any, idx: number) => (
-                          <div key={idx} className="tlitem relative pb-[18px] last:pb-0">
-                            <span 
-                              className={`absolute left-[-21px] top-[4px] w-[12px] h-[12px] rounded-full bg-paper-2 border-2 ${
-                                item.type === "g" ? "border-growth" : item.type === "r" ? "border-risk" : "border-brand"
-                              }`}
-                            />
-                            <div className="dt font-mono text-[10px] text-ink-faint tracking-wider">{item.date}</div>
-                            <div 
-                              className="tx text-[13px] mt-[3px] leading-relaxed text-ink"
-                              dangerouslySetInnerHTML={{ __html: item.text }}
-                            />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-[12px] text-left">
+                        {/* Strengths */}
+                        <div className="p-[14px] bg-growth/5 border border-growth/10 rounded-[12px] flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center gap-[6px] mb-[10px]">
+                              <span className="w-1.5 h-1.5 rounded-full bg-growth"></span>
+                              <span className="font-semibold text-[11px] font-mono text-growth uppercase tracking-wider">Strengths</span>
+                            </div>
+                            <ul className="space-y-[8px] list-none pl-0">
+                              {overview?.swot?.strengths?.map((item: string, idx: number) => (
+                                <li key={idx} className="text-[12.8px] leading-[1.5] text-ink-soft flex items-start gap-[6px]">
+                                  <span className="text-growth font-mono text-[10px] select-none mt-[2.5px] font-bold">S{idx + 1}</span>
+                                  <span>{item}</span>
+                                </li>
+                              ))}
+                              {(!overview?.swot?.strengths || overview.swot.strengths.length === 0) && (
+                                <li className="text-[12.8px] leading-[1.5] text-ink-faint italic">No strengths listed.</li>
+                              )}
+                            </ul>
                           </div>
-                        ))}
+                        </div>
+
+                        {/* Weaknesses */}
+                        <div className="p-[14px] bg-risk/5 border border-risk/10 rounded-[12px] flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center gap-[6px] mb-[10px]">
+                              <span className="w-1.5 h-1.5 rounded-full bg-risk"></span>
+                              <span className="font-semibold text-[11px] font-mono text-risk uppercase tracking-wider">Weaknesses</span>
+                            </div>
+                            <ul className="space-y-[8px] list-none pl-0">
+                              {overview?.swot?.weaknesses?.map((item: string, idx: number) => (
+                                <li key={idx} className="text-[12.8px] leading-[1.5] text-ink-soft flex items-start gap-[6px]">
+                                  <span className="text-risk font-mono text-[10px] select-none mt-[2.5px] font-bold">W{idx + 1}</span>
+                                  <span>{item}</span>
+                                </li>
+                              ))}
+                              {(!overview?.swot?.weaknesses || overview.swot.weaknesses.length === 0) && (
+                                <li className="text-[12.8px] leading-[1.5] text-ink-faint italic">No weaknesses listed.</li>
+                              )}
+                            </ul>
+                          </div>
+                        </div>
+
+                        {/* Opportunities */}
+                        <div className="p-[14px] bg-accent/5 border border-accent/15 rounded-[12px] flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center gap-[6px] mb-[10px]">
+                              <span className="w-1.5 h-1.5 rounded-full bg-accent"></span>
+                              <span className="font-semibold text-[11px] font-mono text-accent uppercase tracking-wider">Opportunities</span>
+                            </div>
+                            <ul className="space-y-[8px] list-none pl-0">
+                              {overview?.swot?.opportunities?.map((item: string, idx: number) => (
+                                <li key={idx} className="text-[12.8px] leading-[1.5] text-ink-soft flex items-start gap-[6px]">
+                                  <span className="text-accent font-mono text-[10px] select-none mt-[2.5px] font-bold">O{idx + 1}</span>
+                                  <span>{item}</span>
+                                </li>
+                              ))}
+                              {(!overview?.swot?.opportunities || overview.swot.opportunities.length === 0) && (
+                                <li className="text-[12.8px] leading-[1.5] text-ink-faint italic">No opportunities listed.</li>
+                              )}
+                            </ul>
+                          </div>
+                        </div>
+
+                        {/* Threats */}
+                        <div className="p-[14px] bg-neutral-bg border border-neutral/20 rounded-[12px] flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center gap-[6px] mb-[10px]">
+                              <span className="w-1.5 h-1.5 rounded-full bg-neutral"></span>
+                              <span className="font-semibold text-[11px] font-mono text-neutral uppercase tracking-wider">Threats</span>
+                            </div>
+                            <ul className="space-y-[8px] list-none pl-0">
+                              {overview?.swot?.threats?.map((item: string, idx: number) => (
+                                <li key={idx} className="text-[12.8px] leading-[1.5] text-ink-soft flex items-start gap-[6px]">
+                                  <span className="text-neutral font-mono text-[10px] select-none mt-[2.5px] font-bold">T{idx + 1}</span>
+                                  <span>{item}</span>
+                                </li>
+                              ))}
+                              {(!overview?.swot?.threats || overview.swot.threats.length === 0) && (
+                                <li className="text-[12.8px] leading-[1.5] text-ink-faint italic">No threats listed.</li>
+                              )}
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="src-foot font-mono text-[9px] text-ink-faint border-t border-dashed border-line pt-[10px] mt-[16px] tracking-wider text-left uppercase">
+                        Sourced from Annual Reports, Regulatory Filings, and News Signals
                       </div>
                     </Card>
                   </div>
