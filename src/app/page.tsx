@@ -1110,8 +1110,8 @@ export default function SignalDashboard() {
                               </svg>
                             </div>
                             <div>
-                              <h4 className="text-[13.5px] font-semibold text-ink leading-tight">Provenance-First Ingestion</h4>
-                              <p className="text-[12px] text-ink-soft mt-0.5 leading-normal">Every signal and financial value is anchored to verified registry records and source URLs.</p>
+                              <h4 className="text-[13.5px] font-semibold text-ink leading-tight">Growth &amp; Risk Tracking</h4>
+                              <p className="text-[12px] text-ink-soft mt-0.5 leading-normal">Monitors real-time corporate events and developments to isolate growth catalysts and risk warnings.</p>
                             </div>
                           </div>
 
@@ -1119,12 +1119,12 @@ export default function SignalDashboard() {
                           <div className="flex gap-[12px] items-start transition-transform hover:translate-x-0.5 duration-200">
                             <div className="w-[28px] h-[28px] rounded-[7px] bg-brand/10 text-brand border border-brand/20 flex items-center justify-center flex-shrink-0 mt-[2px]">
                               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="w-[13px] h-[13px]">
-                                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                                <circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20M2 12h20"/>
                               </svg>
                             </div>
                             <div>
-                              <h4 className="text-[13.5px] font-semibold text-ink leading-tight">Registry Entity Resolution</h4>
-                              <p className="text-[12px] text-ink-soft mt-0.5 leading-normal">Cross-references global company houses to map parent-subsidiary structures automatically.</p>
+                              <h4 className="text-[13.5px] font-semibold text-ink leading-tight">Industry &amp; Macro Sweeps</h4>
+                              <p className="text-[12px] text-ink-soft mt-0.5 leading-normal">Sweeps global news wires, sector journals, and regulatory announcements for macro context.</p>
                             </div>
                           </div>
 
@@ -1136,8 +1136,8 @@ export default function SignalDashboard() {
                               </svg>
                             </div>
                             <div>
-                              <h4 className="text-[13.5px] font-semibold text-ink leading-tight">Growth &amp; Risk Mapping</h4>
-                              <p className="text-[12px] text-ink-soft mt-0.5 leading-normal">Maps corporate signals on a dynamic strategic canvas based on Momentum and Materiality.</p>
+                              <h4 className="text-[13.5px] font-semibold text-ink leading-tight">Benchmarking to Compete</h4>
+                              <p className="text-[12px] text-ink-soft mt-0.5 leading-normal">Benchmarks key metrics and profiles of target accounts against direct industry rivals.</p>
                             </div>
                           </div>
 
@@ -1145,12 +1145,12 @@ export default function SignalDashboard() {
                           <div className="flex gap-[12px] items-start transition-transform hover:translate-x-0.5 duration-200">
                             <div className="w-[28px] h-[28px] rounded-[7px] bg-neutral-bg text-neutral border border-neutral/20 flex items-center justify-center flex-shrink-0 mt-[2px]">
                               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="w-[13px] h-[13px]">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/>
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                               </svg>
                             </div>
                             <div>
-                              <h4 className="text-[13.5px] font-semibold text-ink leading-tight">Continuous Agent Sweeps</h4>
-                              <p className="text-[12px] text-ink-soft mt-0.5 leading-normal">Autonomous crawlers monitor public filings, company house registries, and news wires in real-time.</p>
+                              <h4 className="text-[13.5px] font-semibold text-ink leading-tight">Public Sentiment Analysis</h4>
+                              <p className="text-[12px] text-ink-soft mt-0.5 leading-normal">Tracks rolling media sentiment, executive statements, and social posts for public alignment.</p>
                             </div>
                           </div>
                         </div>
