@@ -631,9 +631,31 @@ export default function SignalDashboard() {
                           </Badge>
                         </CardHeader>
                         
-                        <p className="text-[14.5px] leading-[1.65] text-ink text-left">
-                          {overview?.summary?.text || "Synthesizing account intelligence..."}
-                        </p>
+                        <div className="space-y-4 text-left">
+                          <p className="text-[14.5px] leading-[1.65] text-ink font-normal">
+                            {overview?.summary?.text || "Synthesizing account intelligence..."}
+                          </p>
+                          
+                          {overview?.summary?.growth_summary && (
+                            <div className="p-[14px] bg-growth/5 border border-growth/10 rounded-[12px] flex gap-[10px] items-start">
+                              <span className="w-1.5 h-1.5 rounded-full bg-growth mt-2 flex-shrink-0"></span>
+                              <div className="space-y-0.5">
+                                <span className="font-semibold text-[11px] font-mono text-growth uppercase tracking-wider block">Growth Signals Summary</span>
+                                <p className="text-[13px] leading-[1.6] text-ink-soft">{overview.summary.growth_summary}</p>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {overview?.summary?.risk_summary && (
+                            <div className="p-[14px] bg-risk/5 border border-risk/10 rounded-[12px] flex gap-[10px] items-start">
+                              <span className="w-1.5 h-1.5 rounded-full bg-risk mt-2 flex-shrink-0"></span>
+                              <div className="space-y-0.5">
+                                <span className="font-semibold text-[11px] font-mono text-risk uppercase tracking-wider block">Risk Signals Summary</span>
+                                <p className="text-[13px] leading-[1.6] text-ink-soft">{overview.summary.risk_summary}</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
 
                         <div className="mt-6 border-t border-line-soft pt-[14px]">
                           <div className="note font-mono text-[10px] text-ink-faint tracking-wider uppercase text-left mb-2">OVERALL STATUS SUMMARY</div>
