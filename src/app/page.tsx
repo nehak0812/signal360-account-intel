@@ -1254,7 +1254,6 @@ export default function SignalDashboard() {
                             { key: "7", label: "7 Days" },
                             { key: "30", label: "30 Days" },
                             { key: "180", label: "6 Months" },
-                            { key: "all", label: "All" },
                           ].map((r) => (
                             <button
                               key={r.key}
