@@ -52,7 +52,40 @@ export async function GET(
       console.error("Yahoo finance overview error", apiErr);
     }
 
-    // 2. Fetch actual signals from DB
+    // 2. Query filings-sourced turnover and market quote from local database as robust fallbacks
+    const dbTurnover = await db.financialMetric.findFirst({
+      where: { 
+        entityId: id,
+        metric: "turnover"
+      },
+      orderBy: { filedAt: "desc" }
+    });
+
+    let turnoverStr = "N/A";
+    if (dbTurnover) {
+      if (dbTurnover.unit === "EUR") {
+        turnoverStr = `€${(dbTurnover.value / 1e9).toFixed(1)}B`;
+      } else if (dbTurnover.unit === "USD") {
+        turnoverStr = `$${(dbTurnover.value / 1e9).toFixed(1)}B`;
+      } else if (dbTurnover.unit === "GBP" || dbTurnover.unit === "GBp") {
+        turnoverStr = `£${(dbTurnover.value / 1e9).toFixed(1)}B`;
+      } else {
+        turnoverStr = `${dbTurnover.value} ${dbTurnover.unit}`;
+      }
+    } else if (marketData?.summaryDetail?.totalRevenue) {
+      turnoverStr = `$${(marketData.summaryDetail.totalRevenue / 1e9).toFixed(1)}B`;
+    }
+
+    const dbQuote = await db.marketQuote.findFirst({
+      where: { entityId: id },
+      orderBy: { asOf: "desc" }
+    });
+
+    const dbPeople = await db.person.findMany({
+      where: { entityId: id }
+    });
+
+    // 3. Fetch actual signals from DB
     const dbSignals = await db.signal.findMany({
       where: { accountId: id },
       orderBy: { publishedAt: "desc" },
@@ -79,13 +112,23 @@ export async function GET(
       is_illustrative: false
     }));
 
-    // 3. Live Leadership Watch from assetProfile
-    let leadership_watch = officers.slice(0, 4).map(o => ({
-      date: "CURRENT",
-      entity: entity.displayName.toUpperCase(),
-      text: `<b>${o.name || "Executive"}</b> serving as ${o.title || "Director"}.`,
-      type: "n",
-    }));
+    // 4. Live Leadership Watch from assetProfile or DB People
+    let leadership_watch: any[] = [];
+    if (officers.length > 0) {
+      leadership_watch = officers.slice(0, 4).map(o => ({
+        date: "CURRENT",
+        entity: entity.displayName.toUpperCase(),
+        text: `<b>${o.name || "Executive"}</b> serving as ${o.title || "Director"}.`,
+        type: "n",
+      }));
+    } else if (dbPeople.length > 0) {
+      leadership_watch = dbPeople.slice(0, 4).map(p => ({
+        date: p.changedAt ? new Date(p.changedAt).toLocaleDateString() : "CURRENT",
+        entity: entity.displayName.toUpperCase(),
+        text: `<b>${p.fullName || "Executive"}</b> serving as ${p.roleTitle || "Officer"}.`,
+        type: p.changeType === "appointed" ? "g" : p.changeType === "departed" ? "r" : "n",
+      }));
+    }
 
     if (leadership_watch.length === 0) {
       leadership_watch = [
@@ -93,7 +136,7 @@ export async function GET(
       ];
     }
 
-    // 4. Live AI Executive Summary based on actual signals
+    // 5. Live AI Executive Summary based on actual signals
     let summaryText = `No dynamic synthesis is currently available for ${entity.displayName}. Run a sync to generate intelligence.`;
     let citedSignalIds: string[] = top_signals.map(s => s.id);
 
@@ -179,6 +222,18 @@ export async function GET(
         consensus: { buy: 11, hold: 6, sell: 1, rating: "Buy" }, // Placeholder for analyst ratings
         is_delayed: true,
         as_of: new Date().toISOString(),
+      } : dbQuote ? {
+        symbol: dbQuote.ticker,
+        price: dbQuote.price,
+        currency: dbQuote.currency,
+        change_pct: dbQuote.changePct,
+        week52: { low: dbQuote.week52Low, high: dbQuote.week52High },
+        market_cap: dbQuote.marketCap,
+        pe: dbQuote.pe || 0,
+        yield: dbQuote.dividendYield || 0,
+        consensus: dbQuote.consensus ? JSON.parse(dbQuote.consensus) : null,
+        is_delayed: true,
+        as_of: dbQuote.asOf.toISOString(),
       } : {
         symbol: tickerStr,
         price: 0,
@@ -195,7 +250,7 @@ export async function GET(
       top_signals,
       leadership_watch,
       stats: {
-        turnover: marketData?.summaryDetail?.totalRevenue ? `$${(marketData.summaryDetail.totalRevenue / 1e9).toFixed(1)}B` : "N/A",
+        turnover: turnoverStr,
         active_signals_30d: activeCount30d,
         net_sentiment: ratio_growth_risk >= 1.5 ? "+0.30" : ratio_growth_risk < 0.67 ? "-0.15" : "+0.10",
         open_risks: riskCount,
