@@ -683,53 +683,64 @@ export default function SignalDashboard() {
 
                     {/* Account Health gauges */}
                     <Card>
-                      <CardHeader className="flex flex-col items-start gap-1">
+                      <CardHeader className="flex flex-col items-start gap-1 pb-[10px]">
                         <CardTitle>Account Health</CardTitle>
-                        <div className="text-left font-mono text-[10.5px] text-ink-soft leading-relaxed mt-2 pb-2">
-                          <p className="mb-2">Account Health evaluates real-time strategic standing through two key lenses:</p>
-                          
-                          <p className="font-semibold text-ink mb-1">1. 30-Day Momentum (0–100 Scale)</p>
-                          <p className="mb-1">Calculates the weighted balance of Growth vs. Risk signals generated over the trailing 30 days:</p>
-                          <ul className="mb-3 space-y-1 ml-1">
-                            <li className="flex items-center"><span className="w-1.5 h-1.5 rounded-full bg-risk mr-2"></span><b>0–40 (Risk-Leaning)</b>: Emerging risks outweigh growth.</li>
-                            <li className="flex items-center"><span className="w-1.5 h-1.5 rounded-full bg-accent mr-2"></span><b>41–59 (Stable)</b>: Balanced volume of risks and growth.</li>
-                            <li className="flex items-center"><span className="w-1.5 h-1.5 rounded-full bg-growth mr-2"></span><b>60–100 (Growth)</b>: Positive strategic events dominate.</li>
-                          </ul>
-
-                          <p className="font-semibold text-ink mb-1">2. Competitive Position</p>
-                          <p>The company's Momentum score ranked directly against its Compete Set peers.</p>
+                        <div className="text-left font-mono text-[10.5px] text-ink-soft leading-relaxed mt-2">
+                          <p>Account Health evaluates real-time strategic standing through two key lenses:</p>
                         </div>
                       </CardHeader>
-                      <div className="flex flex-col gap-[18px]">
-                        <div className="flex items-center gap-[18px] text-left">
-                          <Gauge 
-                            value={overview?.score?.momentum ?? 70} 
-                            subLabel="MOMENTUM" 
-                            percentage={overview?.score?.momentum ?? 70} 
-                            strokeColor="var(--growth)"
-                          />
-                          <div>
-                            <Badge type="growth">▲ +6 vs last month</Badge>
-                            <p className="text-[12px] text-ink-soft mt-[8px] leading-tight">
-                              Growth signals outbalance risk {overview?.score?.ratio_growth_risk || "2.1"} : 1 over 30 days.
-                            </p>
+                      
+                      <div className="flex flex-col gap-[20px] text-left">
+                        {/* Point 1: 30-Day Momentum */}
+                        <div className="space-y-[10px]">
+                          <div className="font-mono text-[10.5px] text-ink-soft leading-relaxed">
+                            <p className="font-semibold text-ink mb-1">1. 30-Day Momentum (0–100 Scale)</p>
+                            <p className="mb-1">Calculates the weighted balance of Growth vs. Risk signals generated over the trailing 30 days:</p>
+                            <ul className="space-y-1 ml-1 mt-1">
+                              <li className="flex items-center"><span className="w-1.5 h-1.5 rounded-full bg-risk mr-2"></span><b>0–40 (Risk-Leaning)</b>: Emerging risks outweigh growth.</li>
+                              <li className="flex items-center"><span className="w-1.5 h-1.5 rounded-full bg-accent mr-2"></span><b>41–59 (Stable)</b>: Balanced volume of risks and growth.</li>
+                              <li className="flex items-center"><span className="w-1.5 h-1.5 rounded-full bg-growth mr-2"></span><b>60–100 (Growth)</b>: Positive strategic events dominate.</li>
+                            </ul>
+                          </div>
+
+                          <div className="flex items-center gap-[18px] p-[12px] bg-paper-3/50 border border-line-soft rounded-[12px] transition-all hover:bg-paper-3">
+                            <Gauge 
+                              value={overview?.score?.momentum ?? 70} 
+                              subLabel="MOMENTUM" 
+                              percentage={overview?.score?.momentum ?? 70} 
+                              strokeColor="var(--growth)"
+                            />
+                            <div>
+                              <Badge type="growth">▲ +6 vs last month</Badge>
+                              <p className="text-[12px] text-ink-soft mt-[8px] leading-tight font-body">
+                                Growth signals outbalance risk {overview?.score?.ratio_growth_risk || "2.1"} : 1 over 30 days.
+                              </p>
+                            </div>
                           </div>
                         </div>
 
-                        <div className="h-[1px] bg-line"></div>
+                        <div className="h-[1px] bg-line-soft"></div>
 
-                        <div className="flex items-center gap-[18px] text-left">
-                          <Gauge 
-                            value={`#${overview?.score?.competitive_rank ?? 2}`} 
-                            subLabel={`OF ${overview?.score?.competitive_of ?? 5} PEERS`} 
-                            percentage={(((overview?.score?.competitive_of ?? 5) - (overview?.score?.competitive_rank ?? 2) + 1) / (overview?.score?.competitive_of ?? 5)) * 100} 
-                            strokeColor="var(--brand)"
-                          />
-                          <div>
-                            <Badge type="cat">COMPETITIVE POSITION</Badge>
-                            <p className="text-[12px] text-ink-soft mt-[8px] leading-tight">
-                              Leads peer group on portfolio momentum; trails P&amp;G on gross margin.
-                            </p>
+                        {/* Point 2: Competitive Position */}
+                        <div className="space-y-[10px]">
+                          <div className="font-mono text-[10.5px] text-ink-soft leading-relaxed">
+                            <p className="font-semibold text-ink mb-1">2. Competitive Position</p>
+                            <p>The company's Momentum score ranked directly against its Compete Set peers.</p>
+                          </div>
+
+                          <div className="flex items-center gap-[18px] p-[12px] bg-paper-3/50 border border-line-soft rounded-[12px] transition-all hover:bg-paper-3">
+                            <Gauge 
+                              value={`#${overview?.score?.competitive_rank ?? 2}`} 
+                              subLabel={`OF ${overview?.score?.competitive_of ?? 5} PEERS`} 
+                              percentage={(((overview?.score?.competitive_of ?? 5) - (overview?.score?.competitive_rank ?? 2) + 1) / (overview?.score?.competitive_of ?? 5)) * 100} 
+                              strokeColor="var(--brand)"
+                            />
+                            <div>
+                              <Badge type="cat">COMPETITIVE POSITION</Badge>
+                              <p className="text-[12px] text-ink-soft mt-[8px] leading-tight font-body">
+                                Leads peer group on portfolio momentum; trails P&amp;G on gross margin.
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -740,8 +751,38 @@ export default function SignalDashboard() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[18px]">
                     <StatTile label="Turnover (FY2025)" value={overview?.stats?.turnover || "€60.8B"} change="~4% underlying" direction="up" />
                     <StatTile label="Active Signals (30d)" value={overview?.stats?.active_signals_30d || "38"} change="9 new this week" direction="up" />
-                    <StatTile label="Net Sentiment" value={overview?.stats?.net_sentiment || "+0.30"} change="improving" direction="up" />
-                    <StatTile label="Open Risk Signals" value={overview?.stats?.open_risks || "4"} change="2 regulatory" direction="down" />
+                    <StatTile 
+                      label="Net Sentiment" 
+                      value={overview?.stats?.net_sentiment || "+0.30"} 
+                      change="improving" 
+                      direction="up" 
+                      tooltipTitle="Net Sentiment Score"
+                      tooltipContent={
+                        <div className="space-y-1">
+                          <p>Normalized score showing the balance of growth vs. risk signals over the trailing 30 days.</p>
+                          <p className="font-semibold mt-1">Formula:</p>
+                          <p className="font-mono bg-white/10 p-1 rounded text-[11px]">(Growth - Risk) / Total Signals</p>
+                          <p className="mt-1">Values range from -1.0 (pure risk) to +1.0 (pure growth). A positive score represents growth momentum.</p>
+                        </div>
+                      }
+                    />
+                    <StatTile 
+                      label="Open Risk Signals" 
+                      value={overview?.stats?.open_risks || "4"} 
+                      change="2 regulatory" 
+                      direction="down" 
+                      tooltipTitle="Open Risk Signals"
+                      tooltipContent={
+                        <div className="space-y-1">
+                          <p>Tracks active negative events requiring strategic monitoring or response.</p>
+                          <p className="mt-1">The status indicator below indicates trend direction and volume of specific categories:</p>
+                          <ul className="list-disc pl-4 space-y-1 mt-1 font-body text-[11px]">
+                            <li><b>▼ (Down Arrow)</b>: Signals risk frequency/severity is declining.</li>
+                            <li><b>2 regulatory</b>: 2 of these active risk signals fall under the Regulatory & Compliance category (e.g. EU green-claims rules).</li>
+                          </ul>
+                        </div>
+                      }
+                    />
                   </div>
 
                   {/* Curated list row */}

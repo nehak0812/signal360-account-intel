@@ -1,5 +1,6 @@
 import React from "react";
 import { Card } from "./Card";
+import { Tooltip } from "./Tooltip";
 
 interface StatTileProps {
   label: string;
@@ -7,6 +8,8 @@ interface StatTileProps {
   change?: string;
   direction?: "up" | "down" | "flat";
   className?: string;
+  tooltipTitle?: string;
+  tooltipContent?: React.ReactNode;
 }
 
 export const StatTile: React.FC<StatTileProps> = ({ 
@@ -14,7 +17,9 @@ export const StatTile: React.FC<StatTileProps> = ({
   value, 
   change, 
   direction, 
-  className = "" 
+  className = "",
+  tooltipTitle,
+  tooltipContent
 }) => {
   const directionClasses = {
     up: "text-growth",
@@ -30,8 +35,13 @@ export const StatTile: React.FC<StatTileProps> = ({
 
   return (
     <Card padded={false} className={`p-[18px] md:p-[20px] flex flex-col justify-between ${className}`}>
-      <div className="font-mono text-[9.5px] tracking-widest text-ink-faint uppercase">
-        {label}
+      <div className="font-mono text-[9.5px] tracking-widest text-ink-faint uppercase flex items-center justify-between">
+        <span>{label}</span>
+        {tooltipTitle && tooltipContent && (
+          <Tooltip title={tooltipTitle} className="ml-1 flex-shrink-0">
+            {tooltipContent}
+          </Tooltip>
+        )}
       </div>
       <div className="font-display font-semibold text-[28px] mt-[7px] leading-none tracking-tight text-ink">
         {value}
@@ -45,3 +55,4 @@ export const StatTile: React.FC<StatTileProps> = ({
     </Card>
   );
 };
+
