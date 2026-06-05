@@ -4,6 +4,28 @@ import Parser from "rss-parser";
 import { ai, DEFAULT_MODEL } from "@/lib/gemini";
 import { Type } from "@google/genai";
 
+function parseFeedItem(item: any) {
+  const title = item.title || "";
+  let cleanTitle = title;
+  let publisher = "News";
+  
+  // Google News titles are usually "Title Text - Publisher Name"
+  const dashIndex = title.lastIndexOf(" - ");
+  if (dashIndex !== -1) {
+    cleanTitle = title.substring(0, dashIndex).trim();
+    publisher = title.substring(dashIndex + 3).trim();
+  }
+  
+  return {
+    title: cleanTitle,
+    rawTitle: title,
+    publisher,
+    link: item.link || "#",
+    pubDate: item.isoDate || item.pubDate || new Date().toISOString(),
+    snippet: item.contentSnippet || ""
+  };
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -17,101 +39,140 @@ export async function GET(
 
     const parser = new Parser();
     
-    // Define 3 context queries
+    // Clean name for query (e.g. Unilever PLC -> Unilever)
+    const cleanedName = (entity.displayName || entity.legalName)
+      .replace(/\s+(PLC|Inc\.|Corp\.|Co\.|Ltd\.|Group|Active)\b/gi, "")
+      .trim();
+
+    // Determine industry search terms based on entity.industry
+    let industryTerms = '"FMCG" OR "Consumer Goods"';
+    if (entity.industry) {
+      if (entity.industry.toLowerCase().includes("fmcg")) {
+        industryTerms = '"FMCG" OR "Consumer Goods" OR "consumer packaged goods"';
+      } else {
+        const cleanIndustry = entity.industry.replace(/[()]/g, " ").trim();
+        industryTerms = `"${cleanIndustry}"`;
+      }
+    }
+
+    // Build highly relevant query strings for Geos & Industry
     const queries = [
-      `${entity.legalName} Europe market`,
-      `${entity.legalName} Asia market`,
-      `${entity.legalName} FMCG industry retail`
+      // 1. Company in key operating markets (focus on live regional updates)
+      `"${cleanedName}" (Europe OR UK OR Asia OR "North America" OR US)`,
+      // 2. Dynamic developments in relevant sectors across these geos
+      `(${industryTerms}) (Europe OR UK OR Asia OR US) (retail OR "supply chain" OR trend OR sales)`,
+      // 3. Macro economic and regulatory factors (e.g. inflation, packaging rules, green claims)
+      `(${industryTerms}) (geopolitics OR "macro economy" OR inflation OR regulation OR regulatory)`
     ];
 
-    let allItems: any[] = [];
+    const parsedItems: any[] = [];
 
     // Fetch RSS for each query
     for (const q of queries) {
       const feedUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=en-US&gl=US&ceid=US:en`;
       try {
         const feed = await parser.parseURL(feedUrl);
-        // Take top 2 from each query to get 6 total context signals
-        allItems.push(...feed.items.slice(0, 2));
+        // Take top 5 from each query
+        for (const rawItem of feed.items.slice(0, 5)) {
+          parsedItems.push(parseFeedItem(rawItem));
+        }
       } catch (e) {
         console.error(`RSS parser failed for query ${q}:`, e);
       }
     }
 
-    // Deduplicate by title
+    // Deduplicate by cleaned title to make sure we don't duplicate context cards
     const uniqueItemsMap = new Map();
-    for (const item of allItems) {
-      if (item.title && !uniqueItemsMap.has(item.title)) {
-        uniqueItemsMap.set(item.title, item);
+    for (const item of parsedItems) {
+      const normTitle = item.title.toLowerCase().replace(/[^a-z0-9]/g, "");
+      if (normTitle && !uniqueItemsMap.has(normTitle)) {
+        uniqueItemsMap.set(normTitle, item);
       }
     }
-    const uniqueItems = Array.from(uniqueItemsMap.values()).slice(0, 5); // Take top 5 unique
+    
+    // Sort all unique items by pubDate descending to ensure they are live/current
+    const sortedItems = Array.from(uniqueItemsMap.values())
+      .sort((a: any, b: any) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime())
+      .slice(0, 6); // Take top 6 most recent unique articles
 
     let contextItems: any[] = [];
 
-    const prompt = `
-      You are an intelligence analyst categorizing macro context events for the company ${entity.legalName}.
-      Review the following news headlines and snippets:
-      
-      ${uniqueItems.map((item, i) => `[${i+1}] Source: ${item.source || 'News'} | Title: ${item.title} | Snippet: ${item.contentSnippet || ''}`).join("\n\n")}
-
-      For each news event, perform the following:
-      - Categorize it as either a Geo or Industry event (e.g. "GEO · ASIA", "GEO · EUROPE", "INDUSTRY · RETAIL", "INDUSTRY · REGULATORY", "GEO · NORTH AMERICA"). Use exactly this "CATEGORY · SUBCATEGORY" uppercase format.
-      - Write a short, analytical 1-sentence summary of how this specifically impacts ${entity.legalName}.
-
-      Return a JSON object with an array "items" containing objects with:
-      - "category_label": String (the formatted label)
-      - "title": String (the article title)
-      - "body": String (the analytical summary)
-    `;
-
-    try {
-      const response = await ai.models.generateContent({
-        model: DEFAULT_MODEL,
-        contents: prompt,
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              items: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    category_label: { type: Type.STRING },
-                    title: { type: Type.STRING },
-                    body: { type: Type.STRING }
-                  },
-                  required: ["category_label", "title", "body"]
-                }
-              }
-            },
-            required: ["items"]
-          }
-        }
-      });
-
-      if (response.text) {
-        const parsed = JSON.parse(response.text);
+    if (sortedItems.length > 0) {
+      const prompt = `
+        You are an intelligence analyst categorizing macro context events for the company ${entity.legalName}.
+        Review the following news headlines and snippets:
         
-        contextItems = parsed.items.map((m: any, i: number) => ({
-          ...m,
-          source: { publisher: uniqueItems[i]?.source || "News", url: uniqueItems[i]?.link || "#" },
-          published_at: uniqueItems[i]?.pubDate ? new Date(uniqueItems[i].pubDate).toISOString() : new Date().toISOString()
-        }));
+        ${sortedItems.map((item, i) => `[${i+1}] Source: ${item.publisher} | Title: ${item.title} | Snippet: ${item.snippet}`).join("\n\n")}
+
+        For each news event, perform the following:
+        - Categorize it as either a Geo or Industry event (e.g. "GEO · ASIA", "GEO · EUROPE", "INDUSTRY · RETAIL", "INDUSTRY · REGULATORY", "GEO · NORTH AMERICA", "GEO · UNITED KINGDOM", "INDUSTRY · FMCG"). Use exactly this "CATEGORY · SUBCATEGORY" uppercase format.
+        - Write a short, analytical 1-sentence summary of how this specifically impacts ${entity.legalName} as a leading firm in ${entity.industry || 'its industry'}.
+
+        Return a JSON object with an array "items" containing objects with:
+        - "index": Number (the 1-based index from the input list, e.g. 1, 2, 3...)
+        - "category_label": String (the formatted label)
+        - "title": String (the article title)
+        - "body": String (the analytical summary)
+      `;
+
+      try {
+        const response = await ai.models.generateContent({
+          model: DEFAULT_MODEL,
+          contents: prompt,
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                items: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      index: { type: Type.NUMBER },
+                      category_label: { type: Type.STRING },
+                      title: { type: Type.STRING },
+                      body: { type: Type.STRING }
+                    },
+                    required: ["index", "category_label", "title", "body"]
+                  }
+                }
+              },
+              required: ["items"]
+            }
+          }
+        });
+
+        if (response.text) {
+          const parsed = JSON.parse(response.text);
+          
+          contextItems = parsed.items.map((m: any, i: number) => {
+            const origIndex = typeof m.index === "number" ? m.index - 1 : i;
+            const origItem = sortedItems[origIndex] || sortedItems[i] || {};
+            return {
+              category_label: m.category_label || "INDUSTRY · UPDATE",
+              title: m.title || origItem.title || "News Update",
+              body: m.body || "No summary available.",
+              source: { 
+                publisher: origItem.publisher || "News", 
+                url: origItem.link || "#" 
+              },
+              published_at: origItem.pubDate ? new Date(origItem.pubDate).toISOString() : new Date().toISOString()
+            };
+          });
+        }
+      } catch (genAiErr) {
+        console.error("Gemini failed to analyze context:", genAiErr);
       }
-    } catch (genAiErr) {
-      console.error("Gemini failed to analyze context:", genAiErr);
     }
 
     // Fallback if Gemini fails
     if (contextItems.length === 0) {
-      contextItems = uniqueItems.map(item => ({
+      contextItems = sortedItems.map(item => ({
         category_label: "INDUSTRY · UPDATE",
         title: item.title,
-        body: item.contentSnippet || "No summary available.",
-        source: { publisher: item.source || "News", url: item.link || "#" },
+        body: item.snippet || "No summary available.",
+        source: { publisher: item.publisher || "News", url: item.link || "#" },
         published_at: item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString()
       }));
     }
