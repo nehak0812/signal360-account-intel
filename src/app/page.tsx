@@ -1617,6 +1617,57 @@ export default function SignalDashboard() {
                       </tbody>
                     </table>
                   </Card>
+ 
+                  {/* Qualitative Synthesis Card */}
+                  <Card className="mt-8">
+                    <CardHeader className="flex justify-between w-full pb-[10px]">
+                      <div className="flex items-center gap-[10px]">
+                        <div className="w-[30px] h-[30px] rounded-[9px] bg-paper-3 border border-line flex items-center justify-center text-brand">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" className="w-[15px] h-[15px]">
+                            <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+                          </svg>
+                        </div>
+                        <CardTitle>Analysis &amp; Insights Agent: Competitive Qualitative Synthesis</CardTitle>
+                      </div>
+                      <span className="ml-auto font-mono text-[9.5px] text-brand bg-brand/10 px-2 py-0.5 rounded-[4px] font-semibold uppercase tracking-wider">
+                        Strategic Synthesis
+                      </span>
+                    </CardHeader>
+
+                    <div className="text-left space-y-6">
+                      {competitors?.comparison?.summary && (
+                        <p className="text-[14.2px] leading-relaxed text-ink border-l-2 border-brand pl-3 italic font-body">
+                          {competitors.comparison.summary}
+                        </p>
+                      )}
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-[20px] pt-2">
+                        {/* Investment & R&D Areas */}
+                        <div className="p-[14px] bg-paper-3/50 border border-line-soft rounded-[12px] space-y-2">
+                          <h4 className="font-semibold text-[13.5px] text-brand uppercase tracking-wider font-mono">1. Investment &amp; R&amp;D Areas</h4>
+                          <p className="text-[12.8px] leading-[1.65] text-ink-soft">{competitors?.comparison?.investment_analysis}</p>
+                        </div>
+
+                        {/* M&A and Restructuring */}
+                        <div className="p-[14px] bg-paper-3/50 border border-line-soft rounded-[12px] space-y-2">
+                          <h4 className="font-semibold text-[13.5px] text-brand uppercase tracking-wider font-mono">2. Acquisitions &amp; Demergers</h4>
+                          <p className="text-[12.8px] leading-[1.65] text-ink-soft">{competitors?.comparison?.structure_analysis}</p>
+                        </div>
+
+                        {/* Leadership & CEO Transitions */}
+                        <div className="p-[14px] bg-paper-3/50 border border-line-soft rounded-[12px] space-y-2">
+                          <h4 className="font-semibold text-[13.5px] text-brand uppercase tracking-wider font-mono">3. Leadership transitions</h4>
+                          <p className="text-[12.8px] leading-[1.65] text-ink-soft">{competitors?.comparison?.leadership_analysis}</p>
+                        </div>
+
+                        {/* Stock & Margin Performance */}
+                        <div className="p-[14px] bg-paper-3/50 border border-line-soft rounded-[12px] space-y-2">
+                          <h4 className="font-semibold text-[13.5px] text-brand uppercase tracking-wider font-mono">4. Margin &amp; Market Performance</h4>
+                          <p className="text-[12.8px] leading-[1.65] text-ink-soft">{competitors?.comparison?.performance_analysis}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
 
                   <div className="phead text-left mt-8 mb-[22px]">
                     <div className="eyebrow font-mono text-[10px] tracking-widest text-brand font-semibold uppercase">AI Financial &amp; Strategic Synthesis</div>
