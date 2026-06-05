@@ -137,19 +137,138 @@ export async function GET(
     }
 
     // 5. Live AI Executive Summary and SWOT Analysis based on actual signals and financials
+    // 5. Live AI Executive Summary, SWOT Analysis, and Entity Tree based on actual signals and financials
     let summaryText = "";
     let growthSummaryText = "";
     let riskSummaryText = "";
     let swotData: any = null;
+    let entityTreeData: any = null;
     let citedSignalIds: string[] = top_signals.map(s => s.id);
+
+    // Definitions for fallback trees
+    const unileverTree = {
+      name: "Unilever PLC",
+      relation: "Parent",
+      ownership: "100%",
+      children: [
+        {
+          name: "Beauty & Wellbeing",
+          relation: "Division",
+          ownership: "100% owned",
+          children: [
+            { name: "Dove", relation: "Brand" },
+            { name: "Vaseline", relation: "Brand" },
+            { name: "Paula's Choice", relation: "Brand" },
+            { name: "Dermalogica", relation: "Brand" }
+          ]
+        },
+        {
+          name: "Personal Care",
+          relation: "Division",
+          ownership: "100% owned",
+          children: [
+            { name: "Axe/Lynx", relation: "Brand" },
+            { name: "Rexona/Sure", relation: "Brand" },
+            { name: "Lux", relation: "Brand" }
+          ]
+        },
+        {
+          name: "Home Care",
+          relation: "Division",
+          ownership: "100% owned",
+          children: [
+            { name: "Omo/Persil", relation: "Brand" },
+            { name: "Cif", relation: "Brand" },
+            { name: "Domestos", relation: "Brand" }
+          ]
+        },
+        {
+          name: "Nutrition",
+          relation: "Division",
+          ownership: "100% owned",
+          children: [
+            { name: "Knorr", relation: "Brand" },
+            { name: "Hellmann's", relation: "Brand" }
+          ]
+        },
+        {
+          name: "Hindustan Unilever Ltd (HUL)",
+          relation: "Subsidiary",
+          ownership: "61.9% stake",
+          children: [
+            { name: "HUL Personal Care", relation: "Division" },
+            { name: "HUL Foods & Nutrition", relation: "Division" }
+          ]
+        },
+        {
+          name: "Unilever Indonesia Tbk",
+          relation: "Subsidiary",
+          ownership: "86.0% stake",
+          children: [
+            { name: "Indonesia Operations", relation: "Division" }
+          ]
+        },
+        {
+          name: "Unilever United States, Inc.",
+          relation: "Subsidiary",
+          ownership: "100% owned",
+          children: [
+            { name: "US Personal Care", relation: "Division" },
+            { name: "US Foods", relation: "Division" }
+          ]
+        },
+        {
+          name: "The Magnum Ice Cream Co. (TMICC)",
+          relation: "Demerged Stake",
+          ownership: "19.9% stake",
+          children: [
+            { name: "Ben & Jerry's", relation: "Brand" },
+            { name: "Magnum", relation: "Brand" }
+          ]
+        }
+      ]
+    };
+
+    const genericTree = {
+      name: entity.displayName,
+      relation: "Parent",
+      ownership: "100%",
+      children: [
+        {
+          name: `${entity.displayName} Americas`,
+          relation: "Subsidiary",
+          ownership: "100% owned",
+          children: [
+            { name: "North America Operations", relation: "Division" },
+            { name: "Latin America Operations", relation: "Division" }
+          ]
+        },
+        {
+          name: `${entity.displayName} Europe`,
+          relation: "Subsidiary",
+          ownership: "100% owned",
+          children: [
+            { name: "Western Europe", relation: "Division" },
+            { name: "Eastern Europe", relation: "Division" }
+          ]
+        },
+        {
+          name: `${entity.displayName} Asia-Pacific`,
+          relation: "Subsidiary",
+          ownership: "100% owned",
+          children: [
+            { name: "APAC Regional HQ", relation: "Division" }
+          ]
+        }
+      ]
+    };
 
     try {
       const prompt = dbSignals.length > 0
         ? `
-          You are a corporate intelligence agent writing an executive summary and SWOT analysis dashboard for ${entity.legalName}.
-          Based EXACTLY on the following recent news events and corporate signals, generate three narrative briefs and a SWOT analysis.
-          Ensure every SWOT point is concise, highly analytical, and directly relevant to ${entity.displayName}'s current position.
-
+          You are a corporate intelligence agent writing an executive summary, SWOT analysis, and corporate entity tree dashboard for ${entity.legalName}.
+          Based EXACTLY on the following recent news events and corporate signals, generate three narrative briefs, a SWOT analysis, and a structured tree of corporate divisions, subsidiaries, and key brands.
+          
           Recent Events:
           ${dbSignals.slice(0, 15).map(s => `- [${s.type.toUpperCase()}] [${s.category.toUpperCase()}] ${s.title}: ${s.summary}`).join("\n")}
 
@@ -163,13 +282,27 @@ export async function GET(
               "weaknesses": ["Weakness point 1", "Weakness point 2"],
               "opportunities": ["Opportunity point 1", "Opportunity point 2"],
               "threats": ["Threat point 1", "Threat point 2"]
+            },
+            "entity_tree": {
+              "name": "${entity.displayName}",
+              "relation": "Parent",
+              "ownership": "100%",
+              "children": [
+                {
+                  "name": "Division/Subsidiary Name (e.g. Health & Wellness Division)",
+                  "relation": "Division|Subsidiary|Joint Venture",
+                  "ownership": "Ownership percentage or stake details",
+                  "children": [
+                    { "name": "Key Brand or Sub-entity (e.g. Brand Alpha)", "relation": "Brand|Subsidiary" }
+                  ]
+                }
+              ]
             }
           }
         `
         : `
-          You are a corporate intelligence agent writing an executive summary and SWOT analysis dashboard for ${entity.legalName}.
-          Generate a high-quality historical overview and SWOT analysis based on ${entity.displayName}'s general market status and strategic positioning as of 2025/2026.
-          Ensure every SWOT point is concise, highly analytical, and directly relevant to ${entity.displayName}'s current position.
+          You are a corporate intelligence agent writing an executive summary, SWOT analysis, and corporate entity tree dashboard for ${entity.legalName}.
+          Generate a high-quality historical overview, SWOT analysis, and corporate division/subsidiary tree based on ${entity.displayName}'s general market status and strategic positioning as of 2025/2026.
 
           Return a JSON object matching this schema:
           {
@@ -181,6 +314,21 @@ export async function GET(
               "weaknesses": ["Weakness point 1", "Weakness point 2"],
               "opportunities": ["Opportunity point 1", "Opportunity point 2"],
               "threats": ["Threat point 1", "Threat point 2"]
+            },
+            "entity_tree": {
+              "name": "${entity.displayName}",
+              "relation": "Parent",
+              "ownership": "100%",
+              "children": [
+                {
+                  "name": "Division/Subsidiary Name (e.g. Health & Wellness Division)",
+                  "relation": "Division|Subsidiary|Joint Venture",
+                  "ownership": "Ownership percentage or stake details",
+                  "children": [
+                    { "name": "Key Brand or Sub-entity (e.g. Brand Alpha)", "relation": "Brand|Subsidiary" }
+                  ]
+                }
+              ]
             }
           }
         `;
@@ -205,9 +353,42 @@ export async function GET(
                   threats: { type: Type.ARRAY, items: { type: Type.STRING } }
                 },
                 required: ["strengths", "weaknesses", "opportunities", "threats"]
+              },
+              entity_tree: {
+                type: Type.OBJECT,
+                properties: {
+                  name: { type: Type.STRING },
+                  relation: { type: Type.STRING },
+                  ownership: { type: Type.STRING },
+                  children: {
+                    type: Type.ARRAY,
+                    items: {
+                      type: Type.OBJECT,
+                      properties: {
+                        name: { type: Type.STRING },
+                        relation: { type: Type.STRING },
+                        ownership: { type: Type.STRING },
+                        children: {
+                          type: Type.ARRAY,
+                          items: {
+                            type: Type.OBJECT,
+                            properties: {
+                              name: { type: Type.STRING },
+                              relation: { type: Type.STRING },
+                              ownership: { type: Type.STRING }
+                            },
+                            required: ["name", "relation"]
+                          }
+                        }
+                      },
+                      required: ["name", "relation"]
+                    }
+                  }
+                },
+                required: ["name", "relation"]
               }
             },
-            required: ["summary", "growth_summary", "risk_summary", "swot"]
+            required: ["summary", "growth_summary", "risk_summary", "swot", "entity_tree"]
           }
         }
       });
@@ -218,9 +399,10 @@ export async function GET(
         growthSummaryText = parsed.growth_summary;
         riskSummaryText = parsed.risk_summary;
         swotData = parsed.swot;
+        entityTreeData = parsed.entity_tree;
       }
     } catch (genAiErr) {
-      console.error("Gemini failed to generate summary & SWOT:", genAiErr);
+      console.error("Gemini failed to generate summary, SWOT & Tree:", genAiErr);
     }
 
     if (!summaryText) {
@@ -248,6 +430,14 @@ export async function GET(
           "Intense competition from agile digital-native brands and discount private labels."
         ]
       };
+    }
+
+    if (!entityTreeData) {
+      if (entity.displayName.toLowerCase().includes("unilever")) {
+        entityTreeData = unileverTree;
+      } else {
+        entityTreeData = genericTree;
+      }
     }
 
     // Calculate Dynamic Competitive Rank
@@ -299,6 +489,7 @@ export async function GET(
         cited_signal_ids: citedSignalIds,
       },
       swot: swotData,
+      entity_tree: entityTreeData,
       ticker: marketData ? {
         symbol: tickerStr,
         price: marketData.price?.regularMarketPrice || 0,

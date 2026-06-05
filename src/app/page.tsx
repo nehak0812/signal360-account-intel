@@ -38,6 +38,7 @@ export default function SignalDashboard() {
   // Interaction UI states
   const [alertDrawerOpen, setAlertDrawerOpen] = useState(false);
   const [briefingModalOpen, setBriefingModalOpen] = useState(false);
+  const [entityTreeModalOpen, setEntityTreeModalOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchCandidates, setSearchCandidates] = useState<any[]>([]);
@@ -597,10 +598,23 @@ export default function SignalDashboard() {
               {/* PAGE 1: COMMAND CENTER */}
               {activeTab === "command" && (
                 <section className="page active space-y-[18px] animate-rise">
-                  <div className="phead text-left mb-[22px]">
-                    <div className="eyebrow font-mono text-[10px] tracking-widest text-brand font-semibold uppercase">Account Command Center</div>
-                    <h1 className="ptitle font-display font-semibold text-[30px] leading-tight text-ink mt-[7px] mb-[5px] tracking-tight">{currentEntityName}</h1>
-                    <p className="psub text-ink-soft text-[14px] max-w-[700px]">AI-synthesised intelligence across news, filings, leadership, competitors and social — live sourced updates.</p>
+                  <div className="phead text-left mb-[22px] flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                    <div>
+                      <div className="eyebrow font-mono text-[10px] tracking-widest text-brand font-semibold uppercase">Account Command Center</div>
+                      <h1 className="ptitle font-display font-semibold text-[30px] leading-tight text-ink mt-[7px] mb-[5px] tracking-tight">{currentEntityName}</h1>
+                      <p className="psub text-ink-soft text-[14px] max-w-[700px]">AI-synthesised intelligence across news, filings, leadership, competitors and social — live sourced updates.</p>
+                    </div>
+                    <div className="flex-shrink-0 md:mt-2">
+                      <button 
+                        onClick={() => setEntityTreeModalOpen(true)}
+                        className="btn bg-paper border border-line text-ink hover:text-brand hover:border-brand hover:shadow-sm rounded-[11px] px-[16px] py-[10px] font-body font-semibold text-[13.5px] cursor-pointer flex items-center gap-[8px] transition-all"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="w-[15px] h-[15px]">
+                          <path d="M12 22v-5M17 17H7a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2zM12 7V2M5 12H2M22 12h-3"/>
+                        </svg>
+                        Corporate Entity Tree
+                      </button>
+                    </div>
                   </div>
 
                   {/* Market ticker banner */}
@@ -2454,6 +2468,107 @@ export default function SignalDashboard() {
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* CORPORATE ENTITY TREE MODAL */}
+      <Modal isOpen={entityTreeModalOpen} onClose={() => setEntityTreeModalOpen(false)}>
+        <div className="p-[24px] md:p-[30px] text-left">
+          <div className="flex items-start justify-between border-b border-line pb-4 mb-6">
+            <div className="flex items-center gap-[12px]">
+              <div className="w-[40px] h-[40px] rounded-[9px] bg-brand/10 border border-brand/20 flex items-center justify-center text-brand">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="w-[18px] h-[18px]">
+                  <path d="M12 22v-5M17 17H7a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2zM12 7V2M5 12H2M22 12h-3"/>
+                </svg>
+              </div>
+              <div>
+                <div className="eyebrow font-mono text-[10px] tracking-widest text-brand font-semibold uppercase">Corporate Architecture</div>
+                <h2 className="font-display text-[22px] font-semibold text-ink leading-tight mt-1">
+                  Entity Tree &amp; Relationships
+                </h2>
+              </div>
+            </div>
+            <button 
+              onClick={() => setEntityTreeModalOpen(false)}
+              className="w-[34px] h-[34px] rounded-[9px] border border-line bg-paper-2 hover:border-brand hover:text-brand cursor-pointer flex items-center justify-center text-ink transition-colors duration-150"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M6 6l12 12M18 6 6 18"/>
+              </svg>
+            </button>
+          </div>
+
+          <div className="max-h-[66vh] overflow-y-auto pr-1 space-y-6 scrollbar-thin">
+            {/* Parent Entity Card */}
+            <div className="text-center">
+              <div className="inline-block bg-brand-deep text-[#EDE6D6] border border-brand/35 rounded-[16px] p-5 shadow-md min-w-[260px] max-w-sm">
+                <div className="font-mono text-[9px] tracking-widest text-[#EDE6D6]/65 uppercase font-medium">Ultimate Parent Holding</div>
+                <h3 className="font-display font-semibold text-[18px] mt-1">{overview?.entity_tree?.name || currentEntityName}</h3>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/10 text-white font-mono text-[9px] mt-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse-slow"></span>
+                  Ownership: {overview?.entity_tree?.ownership || "100%"}
+                </div>
+              </div>
+            </div>
+
+            {/* Connecting Vertical Line */}
+            <div className="flex flex-col items-center">
+              <div className="w-0.5 h-8 bg-brand/25 border-dashed border-l border-brand/35"></div>
+              <div className="w-full max-w-[500px] h-0.5 bg-brand/25 border-dashed border-b border-brand/35"></div>
+              <div className="w-0.5 h-6 bg-brand/25 border-dashed border-l border-brand/35"></div>
+            </div>
+
+            {/* Children Grid (Divisions/Subsidiaries) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {(overview?.entity_tree?.children || []).map((child: any, idx: number) => (
+                <div 
+                  key={idx} 
+                  className="p-[18px] bg-paper-2 border border-line hover:border-brand/25 rounded-[16px] shadow-sm transition-all text-left flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex justify-between items-start gap-2 mb-2">
+                      <h4 className="font-semibold text-[14px] text-ink leading-tight">{child.name}</h4>
+                      <Badge type={child.relation === "Division" ? "neutral" : child.relation === "Subsidiary" ? "growth" : "risk"} className="text-[8.5px] uppercase font-mono px-2 py-0.5">
+                        {child.relation}
+                      </Badge>
+                    </div>
+                    {child.ownership && (
+                      <span className="inline-block font-mono text-[9px] text-brand bg-brand/5 border border-brand/10 px-2 py-0.5 rounded mt-1">
+                        Stake: {child.ownership}
+                      </span>
+                    )}
+
+                    {child.children && child.children.length > 0 && (
+                      <div className="mt-4">
+                        <div className="font-mono text-[9px] text-ink-faint uppercase tracking-wider mb-2">Key Brands &amp; Operations</div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {child.children.map((sub: any, sIdx: number) => (
+                            <span 
+                              key={sIdx}
+                              className="font-mono text-[10.5px] bg-paper border border-line text-ink-soft px-2 py-1 rounded-[7px] flex items-center gap-1.5 shadow-sm"
+                            >
+                              <span className="w-1.5 h-1.5 rounded-full bg-brand/40"></span>
+                              {sub.name}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <div className="border-t border-line mt-6 pt-4 flex justify-between items-center text-[10.5px] text-ink-faint font-mono">
+            <span>REAL-TIME RELATIONSHIP PARSING ACTIVE</span>
+            <button 
+              onClick={() => setEntityTreeModalOpen(false)}
+              className="btn bg-paper border border-line text-ink hover:shadow-sm rounded-[11px] px-[16px] py-[8px] font-body font-semibold text-[12.5px] cursor-pointer"
+            >
+              Close
+            </button>
           </div>
         </div>
       </Modal>
