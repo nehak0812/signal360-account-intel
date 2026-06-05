@@ -2150,7 +2150,9 @@ export default function SignalDashboard() {
                 <section className="page active space-y-6 animate-rise">
                   <div className="phead text-left mb-[22px]">
                     <div className="eyebrow font-mono text-[10px] tracking-widest text-brand font-semibold uppercase">Geo &amp; Industry Context</div>
-                    <h1 className="ptitle font-display font-semibold text-[30px] leading-tight text-ink mt-[7px] mb-[5px] tracking-tight">The world around Unilever</h1>
+                    <h1 className="ptitle font-display font-semibold text-[30px] leading-tight text-ink mt-[7px] mb-[5px] tracking-tight">
+                      The world around {overview?.entity?.display_name || "Unilever"}
+                    </h1>
                     <p className="psub text-ink-soft text-[14px] max-w-[700px]">Macro economic conditions, sector developments, and geopolitical alerts that frame the operating environment.</p>
                   </div>
 
