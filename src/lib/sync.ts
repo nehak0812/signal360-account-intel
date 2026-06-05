@@ -5,6 +5,9 @@ import crypto from "crypto";
 import { Type } from "@google/genai";
 
 export async function syncSignals(): Promise<{ success: boolean; count: number; error?: string }> {
+  if (!process.env.GEMINI_API_KEY) {
+    return { success: false, count: 0, error: "GEMINI_API_KEY is not set in the environment variables" };
+  }
   try {
     const parser = new Parser();
     const unilever = await db.entity.findFirst({
