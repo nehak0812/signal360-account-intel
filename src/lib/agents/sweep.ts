@@ -4,6 +4,32 @@ import { classifyArticle } from "./classifier";
 import { ingestSignal } from "./ingestion";
 import { ai, DEFAULT_MODEL } from "../gemini";
 
+function getEntityAliases(displayName: string): string[] {
+  const nameLower = displayName.toLowerCase();
+  if (nameLower.includes("unilever")) {
+    return ["Dove", "Knorr", "Hellmann's", "Ben & Jerry's", "Rexona", "Magnum"];
+  }
+  if (nameLower.includes("nestle") || nameLower.includes("nestlé")) {
+    return ["Nescafé", "Gerber", "KitKat", "Purina", "Perrier", "Maggi"];
+  }
+  if (nameLower.includes("procter") || nameLower.includes("p&g") || nameLower.includes("pg")) {
+    return ["Pampers", "Tide", "Ariel", "Gillette", "Pantene", "Oral-B"];
+  }
+  if (nameLower.includes("colgate")) {
+    return ["Colgate", "Palmolive", "Protex", "Speed Stick", "Softsoap"];
+  }
+  if (nameLower.includes("reckitt")) {
+    return ["Dettol", "Lysol", "Durex", "Mucinex", "Enfamil", "Vanish"];
+  }
+  if (nameLower.includes("ernst") || nameLower.includes("ey") || nameLower.includes("young")) {
+    return ["EY", "Ernst Young", "tax advisory", "audit services", "consulting"];
+  }
+  if (nameLower.includes("pepsi")) {
+    return ["PepsiCo", "Frito-Lay", "Gatorade", "Tropicana", "Quaker", "Sodastream"];
+  }
+  return [];
+}
+
 export async function runSweep(accountId: string): Promise<boolean> {
   console.log(`Starting account intelligence sweep for account ID: ${accountId}`);
 
@@ -18,7 +44,7 @@ export async function runSweep(accountId: string): Promise<boolean> {
     }
 
     // 1. Crawl news from GDELT (free)
-    const aliases = ["Dove", "Knorr", "Hellmann's", "Ben & Jerry's", "Rexona", "Magnum"];
+    const aliases = getEntityAliases(entity.displayName);
     const rawArticles = await fetchNewsForEntity(entity.displayName, aliases, 7);
     console.log(`Retrieved ${rawArticles.length} raw articles from feed.`);
 
@@ -50,13 +76,70 @@ export async function runSweep(accountId: string): Promise<boolean> {
 
     // 3. Fetch Stock Price (Twelve Data free tier fallback to yfinance / dummy quotes)
     try {
-      let price = 4850;
-      let changePct = 0.9;
+      let tickerSymbol = "ULVR";
+      let exchangeName = "LSE";
+      if (entity.tickers) {
+        try {
+          const tickersArr = JSON.parse(entity.tickers);
+          if (tickersArr.length > 0) {
+            tickerSymbol = tickersArr[0].symbol;
+            exchangeName = tickersArr[0].exchange;
+          }
+        } catch (e) {}
+      }
+
+      let price = 100.0;
+      let changePct = 0.5;
+      let currency = "USD";
+      let week52Low = 80.0;
+      let week52High = 120.0;
+      let marketCap = "N/A";
+      let pe: number | null = 15;
+      let dividendYield: number | null = 1.5;
+
+      const nameLower = entity.displayName.toLowerCase();
+      if (nameLower.includes("unilever")) {
+        price = 4850;
+        changePct = 0.9;
+        currency = "GBp";
+        week52Low = 4180;
+        week52High = 5120;
+        marketCap = "£115B";
+        pe = 19;
+        dividendYield = 3.4;
+      } else if (nameLower.includes("nestle") || nameLower.includes("nestlé")) {
+        price = 95.5;
+        changePct = -0.4;
+        currency = "CHF";
+        week52Low = 85.0;
+        week52High = 110.0;
+        marketCap = "CHF 260B";
+        pe = 21;
+        dividendYield = 3.1;
+      } else if (nameLower.includes("ernst") || nameLower.includes("ey") || nameLower.includes("young")) {
+        price = 0.0;
+        changePct = 0.0;
+        currency = "USD";
+        week52Low = 0.0;
+        week52High = 0.0;
+        marketCap = "N/A";
+        pe = null;
+        dividendYield = null;
+      } else if (nameLower.includes("pepsi")) {
+        price = 168.2;
+        changePct = 0.3;
+        currency = "USD";
+        week52Low = 155.0;
+        week52High = 185.0;
+        marketCap = "$230B";
+        pe = 25;
+        dividendYield = 2.9;
+      }
+
       const twelveKey = process.env.TWELVEDATA_API_KEY;
-      
-      if (twelveKey) {
-        // Query LSE stock ULVR
-        const res = await fetch(`https://api.twelvedata.com/time_series?symbol=ULVR&interval=1day&outputsize=1&apikey=${twelveKey}`);
+      if (twelveKey && tickerSymbol && entity.isPublic !== false) {
+        // Query stock using the actual ticker symbol
+        const res = await fetch(`https://api.twelvedata.com/time_series?symbol=${tickerSymbol}&interval=1day&outputsize=1&apikey=${twelveKey}`);
         if (res.ok) {
           const data = await res.json() as { values?: { close: string }[] };
           if (data.values && data.values.length > 0) {
@@ -65,31 +148,40 @@ export async function runSweep(accountId: string): Promise<boolean> {
         }
       }
 
-      await db.marketQuote.upsert({
-        where: { id: "22222222-0000-0000-0000-000000000001" }, // reuse same quote id for simplicity
-        update: {
-          price,
-          changePct,
-          asOf: new Date(),
-        },
-        create: {
-          id: "22222222-0000-0000-0000-000000000001",
-          entityId: entity.id,
-          ticker: "ULVR",
-          price,
-          currency: "GBp",
-          changePct,
-          week52Low: 4180,
-          week52High: 5120,
-          marketCap: "£115B",
-          pe: 19,
-          dividendYield: 3.4,
-          consensus: JSON.stringify({ buy: 11, hold: 6, sell: 1, rating: "Buy" }),
-          asOf: new Date(),
-          source: JSON.stringify({ publisher: "Twelve Data (delayed)", url: "https://twelvedata.com" }),
-        }
+      // Find if quote already exists for this entity to prevent duplicate marketQuote entries
+      const existingQuote = await db.marketQuote.findFirst({
+        where: { entityId: entity.id }
       });
-      console.log(`Updated stock price: ${price} GBp`);
+
+      if (existingQuote) {
+        await db.marketQuote.update({
+          where: { id: existingQuote.id },
+          data: {
+            price,
+            changePct,
+            asOf: new Date(),
+          }
+        });
+      } else {
+        await db.marketQuote.create({
+          data: {
+            entityId: entity.id,
+            ticker: tickerSymbol,
+            price,
+            currency,
+            changePct,
+            week52Low,
+            week52High,
+            marketCap,
+            pe,
+            dividendYield,
+            consensus: JSON.stringify({ buy: 10, hold: 5, sell: 1, rating: "Buy" }),
+            asOf: new Date(),
+            source: JSON.stringify({ publisher: "Twelve Data (delayed)", url: "https://twelvedata.com" }),
+          }
+        });
+      }
+      console.log(`Updated stock price: ${price} ${currency} for ${entity.displayName}`);
     } catch (e) {
       console.error("Market-data sweep failed:", e);
     }

@@ -199,21 +199,58 @@ Do not write any code or explanation. Return ONLY the valid JSON array of candid
           isPublic: true,
         }
       ];
+    } else if (qLower.includes("ernst") || qLower.includes("ey") || qLower.includes("young")) {
+      return [
+        {
+          legalName: "Ernst & Young Global Limited",
+          displayName: "Ernst & Young",
+          domain: "ey.com",
+          tickers: [],
+          industry: "Professional Services / Consulting & Audit",
+          hqCountry: "United Kingdom",
+          hqCity: "London",
+          identifiers: {},
+          isPublic: false,
+        }
+      ];
     }
 
     // Generic fallback for any other company search to allow registering anything
     const cleanName = query.charAt(0).toUpperCase() + query.slice(1);
+    
+    let industry = "Consumer Goods (FMCG)";
+    let isPublic = true;
+    let tickers = [{ exchange: "NYSE", symbol: query.slice(0, 4).toUpperCase().replace(/[^A-Z]/g, "") || "TEMP" }];
+    let hqCountry = "United States";
+    let hqCity = "New York";
+
+    if (qLower.includes("deloitte") || qLower.includes("pwc") || qLower.includes("kpmg") || qLower.includes("mckinsey") || qLower.includes("accenture")) {
+      industry = "Professional Services / Consulting";
+      isPublic = qLower.includes("accenture");
+      tickers = qLower.includes("accenture") ? [{ exchange: "NYSE", symbol: "ACN" }] : [];
+      hqCountry = qLower.includes("accenture") ? "Ireland" : "United States";
+      hqCity = qLower.includes("accenture") ? "Dublin" : "New York";
+    } else if (qLower.includes("pepsi")) {
+      industry = "Food & Beverage";
+      tickers = [{ exchange: "NASDAQ", symbol: "PEP" }];
+    } else if (qLower.includes("coca") || qLower.includes("coke")) {
+      industry = "Food & Beverage";
+      tickers = [{ exchange: "NYSE", symbol: "KO" }];
+    } else if (qLower.includes("tech") || qLower.includes("google") || qLower.includes("microsoft") || qLower.includes("apple") || qLower.includes("meta") || qLower.includes("amazon")) {
+      industry = "Technology";
+    }
+
     return [
       {
         legalName: `${cleanName} Corp`,
         displayName: cleanName,
         domain: `${query.toLowerCase().replace(/[^a-z]/g, "")}.com`,
-        tickers: [{ exchange: "NYSE", symbol: query.slice(0, 4).toUpperCase().replace(/[^A-Z]/g, "") || "TEMP" }],
-        industry: "Consumer Goods (FMCG)",
-        hqCountry: "United States",
-        hqCity: "New York",
+        tickers: tickers,
+        industry: industry,
+        hqCountry: hqCountry,
+        hqCity: hqCity,
         identifiers: {},
-        isPublic: true,
+        isPublic: isPublic,
       }
     ];
   }

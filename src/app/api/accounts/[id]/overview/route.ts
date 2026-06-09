@@ -263,6 +263,68 @@ export async function GET(
       ]
     };
 
+    const eyTree = {
+      name: "Ernst & Young Global Limited",
+      relation: "Parent",
+      ownership: "100%",
+      children: [
+        {
+          name: "Assurance & Audit Services",
+          relation: "Division",
+          ownership: "100% owned",
+          children: [
+            { name: "Financial Statement Audit", relation: "Service" },
+            { name: "Climate Change & Sustainability Services (CCaSS)", relation: "Service" }
+          ]
+        },
+        {
+          name: "Consulting",
+          relation: "Division",
+          ownership: "100% owned",
+          children: [
+            { name: "Business Consulting", relation: "Service" },
+            { name: "Technology Consulting", relation: "Service" }
+          ]
+        },
+        {
+          name: "Tax & Law",
+          relation: "Division",
+          ownership: "100% owned",
+          children: [
+            { name: "Global Compliance & Reporting", relation: "Service" },
+            { name: "International Tax and Transaction Services", relation: "Service" }
+          ]
+        },
+        {
+          name: "Strategy and Transactions (SaT)",
+          relation: "Division",
+          ownership: "100% owned",
+          children: [
+            { name: "EY-Parthenon (Strategy Consulting)", relation: "Brand" },
+            { name: "Transaction Diligence", relation: "Service" }
+          ]
+        },
+        {
+          name: "EY Americas Network",
+          relation: "Member Firm",
+          ownership: "Independent network firm",
+          children: [
+            { name: "US Practice", relation: "Region" },
+            { name: "Canada Practice", relation: "Region" }
+          ]
+        },
+        {
+          name: "EY EMEIA Network",
+          relation: "Member Firm",
+          ownership: "Independent network firm",
+          children: [
+            { name: "UK Practice", relation: "Region" },
+            { name: "Germany Practice", relation: "Region" }
+          ]
+        }
+      ]
+    };
+
     try {
       const prompt = dbSignals.length > 0
         ? `
@@ -406,35 +468,70 @@ export async function GET(
     }
 
     if (!summaryText) {
-      summaryText = `${entity.displayName} is a leading player in the ${entity.industry || "Consumer Goods (FMCG)"} sector, focusing on operational productivity, strategic brand investments, and long-term portfolio optimization.`;
-      growthSummaryText = `Growth is driven by innovation programs, digital commerce scaling, and targeting high-margin premium customer segments.`;
-      riskSummaryText = `Key risk exposures include raw input cost inflation, supply chain logistics complexity, and regulatory compliance standards in regional markets.`;
+      const ind = entity.industry || "Professional Services";
+      const isConsulting = ind.toLowerCase().includes("services") || ind.toLowerCase().includes("consulting") || ind.toLowerCase().includes("audit") || entity.displayName.toLowerCase().includes("ernst") || entity.displayName.toLowerCase().includes("young") || entity.displayName.toLowerCase().includes("ey");
+      
+      if (isConsulting) {
+        summaryText = `${entity.displayName} is a leading global professional services organization, delivering audit, tax, consulting, and advisory solutions to enterprise clients worldwide.`;
+        growthSummaryText = `Growth is driven by expansion in digital transformation advisory, corporate AI integration consulting, and robust demand for tax and regulatory compliance services.`;
+        riskSummaryText = `Key risk exposures include global talent retention, regulatory changes in audit independence rules, and competition from alternative delivery models.`;
+      } else {
+        summaryText = `${entity.displayName} is a leading player in the ${ind} sector, focusing on strategic operations, brand value optimization, and long-term market leadership.`;
+        growthSummaryText = `Growth is driven by service/product innovation, digital commerce channels, and geographical market expansion.`;
+        riskSummaryText = `Key risk exposures include macroeconomic inflation, supply chain resilience, and changing regulatory compliance standards.`;
+      }
     }
 
     if (!swotData) {
-      swotData = {
-        strengths: [
-          "Strong global brand portfolio and deep consumer market distribution networks.",
-          "Established market share leadership across core segments and operating geographies."
-        ],
-        weaknesses: [
-          "Exposure of product categories to raw material price inflation and margin pressures.",
-          "Complex global supply chain structure prone to local logistics disruptions."
-        ],
-        opportunities: [
-          "Portfolio rationalization toward higher-margin premium segments.",
-          "Deployment of digital technologies and AI to streamline operations and marketing."
-        ],
-        threats: [
-          "Increasing regulatory compliance standards around packaging and sustainability.",
-          "Intense competition from agile digital-native brands and discount private labels."
-        ]
-      };
+      const ind = entity.industry || "Consumer Goods";
+      const isConsulting = ind.toLowerCase().includes("services") || ind.toLowerCase().includes("consulting") || ind.toLowerCase().includes("audit") || entity.displayName.toLowerCase().includes("ernst") || entity.displayName.toLowerCase().includes("young") || entity.displayName.toLowerCase().includes("ey");
+      
+      if (isConsulting) {
+        swotData = {
+          strengths: [
+            "Strong global brand reputation and deep relationship networks with Fortune 500 executives.",
+            "Multidisciplinary capabilities spanning tax, audit, transactions, and digital consulting."
+          ],
+          weaknesses: [
+            "High reliance on skilled professionals makes margins sensitive to wage inflation.",
+            "Complex partnership structure can slow down global strategic decision making."
+          ],
+          opportunities: [
+            "High client demand for AI strategy consulting and cybersecurity services.",
+            "Upskilling workforce in advanced analytics to deliver higher-margin services."
+          ],
+          threats: [
+            "Increasing regulatory scrutiny over audit independence and dual-service provision.",
+            "Disruption from niche boutiques and digital automation of compliance tasks."
+          ]
+        };
+      } else {
+        swotData = {
+          strengths: [
+            "Strong global brand portfolio and deep consumer market distribution networks.",
+            "Established market share leadership across core segments and operating geographies."
+          ],
+          weaknesses: [
+            "Exposure of product categories to raw material price inflation and margin pressures.",
+            "Complex global supply chain structure prone to local logistics disruptions."
+          ],
+          opportunities: [
+            "Portfolio rationalization toward higher-margin premium segments.",
+            "Deployment of digital technologies and AI to streamline operations and marketing."
+          ],
+          threats: [
+            "Increasing regulatory compliance standards around packaging and sustainability.",
+            "Intense competition from agile digital-native brands and discount private labels."
+          ]
+        };
+      }
     }
 
     if (!entityTreeData) {
       if (entity.displayName.toLowerCase().includes("unilever")) {
         entityTreeData = unileverTree;
+      } else if (entity.displayName.toLowerCase().includes("ernst") || entity.displayName.toLowerCase().includes("ey") || entity.displayName.toLowerCase().includes("young")) {
+        entityTreeData = eyTree;
       } else {
         entityTreeData = genericTree;
       }
