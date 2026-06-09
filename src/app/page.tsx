@@ -146,60 +146,66 @@ export default function SignalDashboard() {
   const loadAccountData = async () => {
     setLoading(true);
     try {
-      // 1. Fetch Overview & status
-      const overviewRes = await fetch(`/api/accounts/${accountId}/overview`);
-      if (overviewRes.ok) {
-        const data = await overviewRes.json();
-        setOverview(data);
-      }
+      // Fetch all endpoints concurrently to improve page load speed
+      const [
+        overviewRes,
+        compRes,
+        finRes,
+        mapRes,
+        alertsRes,
+        briefingRes,
+        leadRes,
+        liRes,
+        sentRes,
+        geoRes,
+      ] = await Promise.all([
+        fetch(`/api/accounts/${accountId}/overview`),
+        fetch(`/api/accounts/${accountId}/competitors`),
+        fetch(`/api/accounts/${accountId}/financials`),
+        fetch(`/api/accounts/${accountId}/map`),
+        fetch(`/api/accounts/${accountId}/alerts`),
+        fetch(`/api/accounts/${accountId}/briefing`),
+        fetch(`/api/accounts/${accountId}/leadership`),
+        fetch(`/api/accounts/${accountId}/linkedin-voices`),
+        fetch(`/api/accounts/${accountId}/sentiment`),
+        fetch(`/api/accounts/${accountId}/context`),
+      ]);
 
-      // 2. Fetch competitors list
-      const compRes = await fetch(`/api/accounts/${accountId}/competitors`);
-      if (compRes.ok) {
-        const data = await compRes.json();
-        setCompetitors(data);
-      }
+      // Parse JSON responses concurrently
+      const [
+        overviewData,
+        compData,
+        finData,
+        mapDataVal,
+        alertsData,
+        briefingData,
+        leadData,
+        liData,
+        sentData,
+        geoData,
+      ] = await Promise.all([
+        overviewRes.ok ? overviewRes.json() : null,
+        compRes.ok ? compRes.json() : null,
+        finRes.ok ? finRes.json() : null,
+        mapRes.ok ? mapRes.json() : null,
+        alertsRes.ok ? alertsRes.json() : null,
+        briefingRes.ok ? briefingRes.json() : null,
+        leadRes.ok ? leadRes.json() : null,
+        liRes.ok ? liRes.json() : null,
+        sentRes.ok ? sentRes.json() : null,
+        geoRes.ok ? geoRes.json() : null,
+      ]);
 
-      // 3. Fetch financials page metrics
-      const finRes = await fetch(`/api/accounts/${accountId}/financials`);
-      if (finRes.ok) {
-        const data = await finRes.json();
-        setFinancials(data);
-      }
-
-      // 4. Fetch map data
-      const mapRes = await fetch(`/api/accounts/${accountId}/map`);
-      if (mapRes.ok) {
-        const data = await mapRes.json();
-        setMapData(data);
-      }
-
-      // 5. Fetch alerts list
-      const alertsRes = await fetch(`/api/accounts/${accountId}/alerts`);
-      if (alertsRes.ok) {
-        const data = await alertsRes.json();
-        setAlerts(data);
-      }
-
-      // 6. Fetch Briefing
-      const briefingRes = await fetch(`/api/accounts/${accountId}/briefing`);
-      if (briefingRes.ok) {
-        const data = await briefingRes.json();
-        setBriefing(data);
-      }
-
-      // 7. Load tabs context details
-      const leadRes = await fetch(`/api/accounts/${accountId}/leadership`);
-      if (leadRes.ok) setLeadership(await leadRes.json());
-
-      const liRes = await fetch(`/api/accounts/${accountId}/linkedin-voices`);
-      if (liRes.ok) setLinkedin(await liRes.json());
-
-      const sentRes = await fetch(`/api/accounts/${accountId}/sentiment`);
-      if (sentRes.ok) setSentiment(await sentRes.json());
-
-      const geoRes = await fetch(`/api/accounts/${accountId}/context`);
-      if (geoRes.ok) setContext(await geoRes.json());
+      if (overviewData) setOverview(overviewData);
+      if (compData) setCompetitors(compData);
+      if (finData) setFinancials(finData);
+      if (mapDataVal) setMapData(mapDataVal);
+      if (alertsData) setAlerts(alertsData);
+      if (briefingData) setBriefing(briefingData);
+      if (leadData) setLeadership(leadData);
+      if (liData) setLinkedin(liData);
+      if (sentData) setSentiment(sentData);
+      if (geoData) setContext(geoData);
 
     } catch (e) {
       console.error("Error loading account data:", e);
