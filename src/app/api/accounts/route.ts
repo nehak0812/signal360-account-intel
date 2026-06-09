@@ -48,10 +48,10 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // Run initial sweep for this brand
-      console.log(`Running initial sweep for newly registered entity: ${entity.displayName}`);
+      // Run initial sweep for this brand (180 days backfill for comprehensive history)
+      console.log(`Running initial 180-day sweep for newly registered entity: ${entity.displayName}`);
       try {
-        await runSweep(entity.id);
+        await runSweep(entity.id, 180);
       } catch (sweepErr) {
         console.error("Initial sweep failed for newly registered entity:", sweepErr);
       }

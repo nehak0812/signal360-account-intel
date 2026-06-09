@@ -9,6 +9,7 @@ export interface ClassifiedSignal {
   summary: string;     // Short paraphrase
   rawExcerpt: string;  // Direct verbatim snippet
   confidence: number;  // 0.0 to 1.0
+  relevance: number;   // Relevance score (0 to 10)
   embedding?: number[]; // 768 float array
 }
 
@@ -25,7 +26,13 @@ Article Publisher: ${article.publisher}
 Article Snippet: ${article.snippet || "N/A"}
 
 Classify the article based on these strict guidelines:
-1. Category - must be one of:
+1. Relevance - Rate how directly relevant this article is to the target company "${entityName}" on a scale from 0 to 10:
+   - 10: The article is explicitly and primarily about "${entityName}" (e.g. quarterly earnings call, merger announcement, leadership hire).
+   - 7-9: The article prominently discusses "${entityName}" as a major player alongside others.
+   - 4-6: The article mentions "${entityName}" only in passing or as part of a general list of firms.
+   - 0-3: The article is not about "${entityName}" at all (e.g., matching a noise acronym like "EY" or unrelated content).
+
+2. Category - must be one of:
    - "ma": acquisitions, mergers, divestitures, demergers
    - "ai_pivot": AI strategy, tech shifts, digital transformations
    - "earnings": results, guidance, analyst ratings, dividends, financial metrics
@@ -38,21 +45,21 @@ Classify the article based on these strict guidelines:
    - "esg": carbon targets, packaging rules, sustainability initiatives
    - "major_contract": marquee customer wins or major supply contracts (if relevant)
 
-2. Type - must be one of:
+3. Type - must be one of:
    - "growth": likely to strengthen the business (wins, beats, expansions, productivity savings)
    - "risk": likely to weaken or threaten the business (regulatory fines, recalls, competitive losses, reputational hits)
    - "neutral": directionally ambiguous or material transition (leadership change, demergers in transition)
 
-3. Severity - integer between 1 and 5:
+4. Severity - integer between 1 and 5:
    - 5: Transformational, market-wide impact (e.g. multi-billion merger, CEO exit, major recall)
    - 4: Significant material change (e.g. quarterly earnings beat, restructuring, legal probe)
    - 3: Moderate business impact (e.g. regional partnership, product pivot, ESG updates)
    - 2: Minor impact (e.g. single brand marketing campaign, routine regulatory compliance)
    - 1: Very low material impact (e.g. minor press mention, standard administrative notice)
 
-4. Title - Keep it short, active, and professional.
-5. Summary - A short, professional paraphrased sentence summarizing the core event. The summary must be ground in the snippet and title, do not hallucinate facts.
-6. Raw Excerpt - A short, verbatim snippet from the article text showing proof of the claim. If the snippet is empty, use a relevant fragment of the title.
+5. Title - Keep it short, active, and professional.
+6. Summary - A short, professional paraphrased sentence summarizing the core event. The summary must be ground in the snippet and title, do not hallucinate facts.
+7. Raw Excerpt - A short, verbatim snippet from the article text showing proof of the claim. If the snippet is empty, use a relevant fragment of the title.
 
 Return the classification as a strict JSON object following this format:
 {
@@ -62,13 +69,13 @@ Return the classification as a strict JSON object following this format:
   "title": "...",
   "summary": "...",
   "rawExcerpt": "...",
-  "confidence": 0.92
+  "confidence": 0.92,
+  "relevance": 9
 }
 
 Do not write any code or explanation. Return ONLY the valid JSON object.`;
 
   try {
-    // 1. Run text classification via Gemini Flash
     const response = await ai.models.generateContent({
       model: DEFAULT_MODEL,
       contents: prompt,
@@ -107,6 +114,12 @@ Do not write any code or explanation. Return ONLY the valid JSON object.`;
     const type = isRisk ? "risk" : isGrowth ? "growth" : "neutral";
     const category = article.title.toLowerCase().includes("m&a") || article.title.toLowerCase().includes("combine") ? "ma" : "regulatory";
     
+    // Fallback heuristic for relevance
+    const isExplicitEY = entityName.toLowerCase().match(/(ernst|ey|young)/) && article.title.toLowerCase().match(/(ernst|ey|young)/);
+    const isExplicitUnilever = entityName.toLowerCase().includes("unilever") && article.title.toLowerCase().includes("unilever");
+    const isExplicitTarget = article.title.toLowerCase().includes(entityName.toLowerCase());
+    const relevance = (isExplicitEY || isExplicitUnilever || isExplicitTarget) ? 9 : 4;
+
     return {
       category,
       type,
@@ -115,6 +128,7 @@ Do not write any code or explanation. Return ONLY the valid JSON object.`;
       summary: article.title,
       rawExcerpt: article.title.slice(0, 100),
       confidence: 0.5,
+      relevance
     };
   }
 }

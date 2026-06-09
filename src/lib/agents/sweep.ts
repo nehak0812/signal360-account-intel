@@ -30,8 +30,8 @@ function getEntityAliases(displayName: string): string[] {
   return [];
 }
 
-export async function runSweep(accountId: string): Promise<boolean> {
-  console.log(`Starting account intelligence sweep for account ID: ${accountId}`);
+export async function runSweep(accountId: string, backfillDays: number = 7): Promise<boolean> {
+  console.log(`Starting account intelligence sweep for account ID: ${accountId} with backfill window: ${backfillDays} days`);
 
   try {
     const entity = await db.entity.findUnique({
@@ -43,16 +43,23 @@ export async function runSweep(accountId: string): Promise<boolean> {
       return false;
     }
 
-    // 1. Crawl news from GDELT (free)
+    // 1. Crawl news from Google News RSS & GDELT
     const aliases = getEntityAliases(entity.displayName);
-    const rawArticles = await fetchNewsForEntity(entity.displayName, aliases, 7);
+    const rawArticles = await fetchNewsForEntity(entity.displayName, aliases, backfillDays);
     console.log(`Retrieved ${rawArticles.length} raw articles from feed.`);
 
-    // 2. Classify and Ingest each article (limit to 10 for rate limits & API quotas)
+    // 2. Classify and Ingest each article (limit to 12 for rate limits & API quotas)
     const activeSignals: string[] = [];
-    for (const art of rawArticles.slice(0, 10)) {
+    for (const art of rawArticles.slice(0, 12)) {
       try {
         const classified = await classifyArticle(art, entity.displayName);
+        
+        // Skip low relevance matches (e.g. acronym noise or transient mentions)
+        if (classified.relevance < 6) {
+          console.log(`Skipping article due to low relevance score (${classified.relevance}/10): ${art.title}`);
+          continue;
+        }
+
         const signalId = await ingestSignal({
           entityId: entity.id,
           aboutRole: "target",
@@ -62,7 +69,7 @@ export async function runSweep(accountId: string): Promise<boolean> {
           severity: classified.severity,
           title: classified.title,
           summary: classified.summary,
-          rawExcerpt: classified.rawExcerpt,
+          rawExcerpt: classified.rawExcerpt || art.title,
           publishedAt: new Date(art.publishedAt),
           sources: [{ publisher: art.publisher, url: art.url }],
           confidence: classified.confidence,
