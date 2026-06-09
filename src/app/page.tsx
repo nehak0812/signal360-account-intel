@@ -34,6 +34,8 @@ export default function SignalDashboard() {
   const [feedCategory, setFeedCategory] = useState<string>("all");
   const [feedType, setFeedType] = useState<string>("all");
   const [feedScope, setFeedScope] = useState<string>("all");
+  const [feedPage, setFeedPage] = useState<number>(1);
+  const lastFiltersRef = React.useRef("");
 
   // Interaction UI states
   const [alertDrawerOpen, setAlertDrawerOpen] = useState(false);
@@ -214,10 +216,10 @@ export default function SignalDashboard() {
     }
   };
 
-  // Load signals feed whenever range/category/type/scope or accountId changes
-  const loadSignalsFeed = async () => {
+  // Load signals feed whenever range/category/type/scope, accountId or page changes
+  const loadSignalsFeed = async (pageVal = feedPage) => {
     try {
-      const feedRes = await fetch(`/api/accounts/${accountId}/signals?range=${feedRange}&category=${feedCategory}&type=${feedType}&scope=${feedScope}`);
+      const feedRes = await fetch(`/api/accounts/${accountId}/signals?range=${feedRange}&category=${feedCategory}&type=${feedType}&scope=${feedScope}&page=${pageVal}&limit=50`);
       if (feedRes.ok) {
         const data = await feedRes.json();
         setSignalsFeed(data);
@@ -233,10 +235,20 @@ export default function SignalDashboard() {
     fetchWatchlist();
   }, [accountId]);
 
-  // Load signals on filters change
+  // Load signals on filters or page change
   useEffect(() => {
-    loadSignalsFeed();
-  }, [accountId, feedRange, feedCategory, feedType, feedScope]);
+    const currentFilters = `${accountId}-${feedRange}-${feedCategory}-${feedType}-${feedScope}`;
+    if (lastFiltersRef.current && lastFiltersRef.current !== currentFilters) {
+      lastFiltersRef.current = currentFilters;
+      setFeedPage(1);
+      if (feedPage === 1) {
+        loadSignalsFeed(1);
+      }
+      return;
+    }
+    lastFiltersRef.current = currentFilters;
+    loadSignalsFeed(feedPage);
+  }, [accountId, feedRange, feedCategory, feedType, feedScope, feedPage]);
 
   // Connect Server-Sent Events (SSE) for live scores and alerts notifications
   useEffect(() => {
@@ -1329,7 +1341,7 @@ export default function SignalDashboard() {
                   {/* Signals list count */}
                   <div className="flex justify-between items-center text-ink-soft font-mono text-[12px] px-2">
                     <span>
-                      showing {signalsFeed.shown} of {signalsFeed.total} signals
+                      showing {signalsFeed.total > 0 ? `${(feedPage - 1) * 50 + 1}–${Math.min(feedPage * 50, signalsFeed.total)}` : 0} of {signalsFeed.total} signals
                     </span>
                   </div>
 
@@ -1382,6 +1394,111 @@ export default function SignalDashboard() {
                       )}
                     </div>
                   </Card>
+
+                  {/* Pagination Controls */}
+                  {signalsFeed.total > 50 && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 px-2">
+                      <span className="text-ink-soft font-mono text-[12.5px] font-medium">
+                        Page {feedPage} of {Math.ceil(signalsFeed.total / 50)} ({signalsFeed.total} total signals)
+                      </span>
+                      
+                      <div className="flex items-center gap-2">
+                        <button
+                          disabled={feedPage === 1}
+                          onClick={() => setFeedPage(prev => Math.max(1, prev - 1))}
+                          className={`font-mono text-[11.5px] px-[14px] py-[8px] rounded-lg border cursor-pointer select-none transition-all ${
+                            feedPage === 1 
+                              ? "bg-paper-3 border-line text-ink-faint cursor-not-allowed opacity-60" 
+                              : "bg-paper-2 border-line text-ink-soft hover:border-brand hover:text-brand hover:shadow-sm"
+                          }`}
+                        >
+                          &larr; Previous
+                        </button>
+                        
+                        {/* Page number buttons */}
+                        {(() => {
+                          const totalPages = Math.ceil(signalsFeed.total / 50);
+                          const pages = [];
+                          const maxVisiblePages = 5;
+                          let startPage = Math.max(1, feedPage - 2);
+                          let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+                          
+                          if (endPage - startPage < maxVisiblePages - 1) {
+                            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                          }
+                          
+                          for (let i = startPage; i <= endPage; i++) {
+                            pages.push(i);
+                          }
+                          
+                          return (
+                            <div className="flex items-center gap-1.5">
+                              {startPage > 1 && (
+                                <>
+                                  <button
+                                    onClick={() => setFeedPage(1)}
+                                    className={`w-[32px] h-[32px] flex items-center justify-center font-mono text-[11.5px] rounded-lg border cursor-pointer transition-all ${
+                                      feedPage === 1 
+                                        ? "bg-ink border-ink text-paper-2 font-semibold" 
+                                        : "bg-paper-2 border-line text-ink-soft hover:border-brand hover:text-brand"
+                                    }`}
+                                  >
+                                    1
+                                  </button>
+                                  {startPage > 2 && <span className="text-ink-faint font-mono px-1">...</span>}
+                                </>
+                              )}
+                              
+                              {pages.map((p) => {
+                                if (p === 1 && startPage > 1) return null;
+                                return (
+                                  <button
+                                    key={p}
+                                    onClick={() => setFeedPage(p)}
+                                    className={`w-[32px] h-[32px] flex items-center justify-center font-mono text-[11.5px] rounded-lg border cursor-pointer transition-all ${
+                                      feedPage === p 
+                                        ? "bg-ink border-ink text-paper-2 font-semibold shadow-sm" 
+                                        : "bg-paper-2 border-line text-ink-soft hover:border-brand hover:text-brand"
+                                    }`}
+                                  >
+                                    {p}
+                                  </button>
+                                );
+                              })}
+                              
+                              {endPage < totalPages && (
+                                <>
+                                  {endPage < totalPages - 1 && <span className="text-ink-faint font-mono px-1">...</span>}
+                                  <button
+                                    onClick={() => setFeedPage(totalPages)}
+                                    className={`w-[32px] h-[32px] flex items-center justify-center font-mono text-[11.5px] rounded-lg border cursor-pointer transition-all ${
+                                      feedPage === totalPages 
+                                        ? "bg-ink border-ink text-paper-2 font-semibold" 
+                                        : "bg-paper-2 border-line text-ink-soft hover:border-brand hover:text-brand"
+                                    }`}
+                                  >
+                                    {totalPages}
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          );
+                        })()}
+                        
+                        <button
+                          disabled={feedPage >= Math.ceil(signalsFeed.total / 50)}
+                          onClick={() => setFeedPage(prev => Math.min(Math.ceil(signalsFeed.total / 50), prev + 1))}
+                          className={`font-mono text-[11.5px] px-[14px] py-[8px] rounded-lg border cursor-pointer select-none transition-all ${
+                            feedPage >= Math.ceil(signalsFeed.total / 50)
+                              ? "bg-paper-3 border-line text-ink-faint cursor-not-allowed opacity-60" 
+                              : "bg-paper-2 border-line text-ink-soft hover:border-brand hover:text-brand hover:shadow-sm"
+                          }`}
+                        >
+                          Next &rarr;
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </section>
               )}
 
@@ -1644,7 +1761,7 @@ export default function SignalDashboard() {
                               </td>
                               <td className="p-[15px] p-[14px]">
                                 <div className="flex items-center gap-2">
-                                  <span className="font-mono font-semibold">{row.momentum}</span>
+                                  <span className="font-mono font-semibold">{Number(row.momentum).toFixed(1)}</span>
                                   <div className="mini-bar w-[70px] h-[6px] rounded-full bg-line overflow-hidden">
                                     <span 
                                       className="block h-full bg-growth rounded-full" 

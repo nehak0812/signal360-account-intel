@@ -13,7 +13,9 @@ export async function GET(
   const category = searchParams.get("category"); // specific category or "all"
   const type = searchParams.get("type"); // "growth" | "risk" | "neutral" | "all"
   const scope = searchParams.get("scope"); // "all" | "target"
+  const page = parseInt(searchParams.get("page") || "1", 10);
   const limit = parseInt(searchParams.get("limit") || "50", 10);
+  const skip = (page - 1) * limit;
 
   try {
     const entity = await db.entity.findUnique({ where: { id } });
@@ -54,12 +56,13 @@ export async function GET(
     }
 
     const totalCount = await db.signal.count({
-      where: { accountId: id }
+      where: whereClause
     });
 
     const dbSignals = await db.signal.findMany({
       where: whereClause,
       orderBy: { publishedAt: "desc" },
+      skip: skip,
       take: limit,
     });
 

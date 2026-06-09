@@ -125,13 +125,13 @@ export async function GET(
     const fetchCompanyData = async (comp: any) => {
       // 1. Fetch live DB signals to calculate dynamic real-time score
       const compSignals = await db.signal.findMany({
-        where: { entityId: comp.id },
+        where: { entityId: comp.id, accountId: id },
       });
       
       const growthCount = compSignals.filter(s => s.type === "growth").length;
       const riskCount = compSignals.filter(s => s.type === "risk").length;
       const ratioGrowthRisk = riskCount > 0 ? (growthCount / riskCount) : (growthCount > 0 ? 2.0 : 1.0);
-      const calculatedMomentum = 50 + (ratioGrowthRisk * 10);
+      const calculatedMomentum = parseFloat((50 + (ratioGrowthRisk * 10)).toFixed(1));
 
       const latestSignal = await db.signal.findFirst({
         where: { entityId: comp.id },

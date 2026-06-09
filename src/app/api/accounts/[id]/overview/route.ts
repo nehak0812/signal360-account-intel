@@ -92,10 +92,13 @@ export async function GET(
     });
 
     const activeCount30d = dbSignals.length;
-    const growthCount = dbSignals.filter(s => s.type === "growth").length;
-    const riskCount = dbSignals.filter(s => s.type === "risk").length;
-    const neutralCount = dbSignals.filter(s => s.type === "neutral").length;
-    const ratio_growth_risk = riskCount > 0 ? parseFloat((growthCount / riskCount).toFixed(2)) : (growthCount > 0 ? 2.0 : 1.0);
+
+    // Target-specific signals for calculating momentum
+    const targetSignals = dbSignals.filter(s => s.entityId === id);
+    const growthCount = targetSignals.filter(s => s.type === "growth").length;
+    const riskCount = targetSignals.filter(s => s.type === "risk").length;
+    const neutralCount = targetSignals.filter(s => s.type === "neutral").length;
+    const ratio_growth_risk = riskCount > 0 ? (growthCount / riskCount) : (growthCount > 0 ? 2.0 : 1.0);
 
     const top_signals = dbSignals.slice(0, 4).map(sig => ({
       id: sig.id,
@@ -543,15 +546,19 @@ export async function GET(
       include: { competitorEntity: true },
     });
     
-    const targetMomentum = 50 + (ratio_growth_risk * 10);
+    const targetMomentum = parseFloat((50 + (ratio_growth_risk * 10)).toFixed(1));
     let allMomentums = [targetMomentum];
     
     for (const link of competitorLinks) {
-      const compScore = await db.score.findFirst({
-        where: { accountId: link.competitorEntity.id },
-        orderBy: { computedAt: "desc" },
+      // Find signals for this competitor within the current account's context
+      const compSignals = await db.signal.findMany({
+        where: { entityId: link.competitorEntity.id, accountId: id }
       });
-      allMomentums.push(compScore?.momentum ?? 55);
+      const compGrowth = compSignals.filter(s => s.type === "growth").length;
+      const compRisk = compSignals.filter(s => s.type === "risk").length;
+      const compRatio = compRisk > 0 ? (compGrowth / compRisk) : (compGrowth > 0 ? 2.0 : 1.0);
+      const compMomentum = parseFloat((50 + (compRatio * 10)).toFixed(1));
+      allMomentums.push(compMomentum);
     }
     
     allMomentums.sort((a, b) => b - a);
@@ -576,9 +583,9 @@ export async function GET(
         growth_count_30d: growthCount,
         risk_count_30d: riskCount,
         neutral_count_30d: neutralCount,
-        ratio_growth_risk: ratio_growth_risk,
+        ratio_growth_risk: parseFloat(ratio_growth_risk.toFixed(2)),
       },
-      status: ratio_growth_risk >= 1.5 ? "growth" : ratio_growth_risk < 0.6 ? "risk" : "mixed",
+      status: ratio_growth_risk >= 1.5 ? "net_positive" : ratio_growth_risk < 0.67 ? "elevated_risk" : "mixed",
       summary: {
         text: summaryText,
         growth_summary: growthSummaryText,
