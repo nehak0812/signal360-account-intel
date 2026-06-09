@@ -85,9 +85,15 @@ export async function GET(
       where: { entityId: id }
     });
 
-    // 3. Fetch actual signals from DB
+    // 3. Fetch actual signals from DB (limited to last 180 days to match the 6-month lookback default of the platform)
+    const dateLimit180 = new Date();
+    dateLimit180.setDate(dateLimit180.getDate() - 180);
+
     const dbSignals = await db.signal.findMany({
-      where: { accountId: id },
+      where: { 
+        accountId: id,
+        publishedAt: { gte: dateLimit180 }
+      },
       orderBy: { publishedAt: "desc" },
     });
 

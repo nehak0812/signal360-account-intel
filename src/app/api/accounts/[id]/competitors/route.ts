@@ -98,6 +98,9 @@ export async function GET(
   const resolvedParams = await params;
   const id = resolvedParams.id;
 
+  const dateLimit180 = new Date();
+  dateLimit180.setDate(dateLimit180.getDate() - 180);
+
   try {
     const targetEntity = await db.entity.findUnique({ where: { id } });
     if (targetEntity) {
@@ -125,7 +128,11 @@ export async function GET(
     const fetchCompanyData = async (comp: any) => {
       // 1. Fetch live DB signals to calculate dynamic real-time score
       const compSignals = await db.signal.findMany({
-        where: { entityId: comp.id, accountId: id },
+        where: { 
+          entityId: comp.id, 
+          accountId: id,
+          publishedAt: { gte: dateLimit180 }
+        },
       });
       
       const growthCount = compSignals.filter(s => s.type === "growth").length;

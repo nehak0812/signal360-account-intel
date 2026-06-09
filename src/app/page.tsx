@@ -815,7 +815,7 @@ export default function SignalDashboard() {
                         </div>
                       }
                     />
-                    <StatTile label="Active Signals (30d)" value={overview?.stats?.active_signals_30d || "38"} change="9 new this week" direction="up" />
+                    <StatTile label="Active Signals (6M)" value={overview?.stats?.active_signals_30d || "38"} change="9 new this week" direction="up" />
                     <StatTile 
                       label="Net Sentiment" 
                       value={overview?.stats?.net_sentiment || "+0.30"} 
