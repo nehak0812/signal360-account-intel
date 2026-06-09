@@ -1744,7 +1744,7 @@ export default function SignalDashboard() {
                   <div className="phead text-left mb-[22px] flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                     <div>
                       <div className="eyebrow font-mono text-[10px] tracking-widest text-brand font-semibold uppercase">Financial Deep-Dive</div>
-                      <h1 className="ptitle font-display font-semibold text-[30px] leading-tight text-ink mt-[7px] mb-[5px] tracking-tight">Regulatory Financials</h1>
+                      <h1 className="ptitle font-display font-semibold text-[30px] leading-tight text-ink mt-[7px] mb-[5px] tracking-tight">Financials</h1>
                       <p className="psub text-ink-soft text-[14px] max-w-[700px]">Strictly filings-sourced metrics parsed from SEC 20-F annual and 6-K quarterly reports. Every value includes full provenance. Unilever's financial reporting year ends on <strong>December 31st</strong>.</p>
                     </div>
                     <div className="flex-shrink-0">
