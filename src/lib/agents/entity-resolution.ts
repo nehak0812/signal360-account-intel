@@ -236,6 +236,11 @@ Do not write any code or explanation. Return ONLY the valid JSON array of candid
     } else if (qLower.includes("coca") || qLower.includes("coke")) {
       industry = "Food & Beverage";
       tickers = [{ exchange: "NYSE", symbol: "KO" }];
+    } else if (qLower.includes("astrazeneca") || qLower.includes("astra zeneca") || qLower.includes("azn")) {
+      industry = "Pharmaceuticals / Life Sciences";
+      tickers = [{ exchange: "LSE", symbol: "AZN" }, { exchange: "NASDAQ", symbol: "AZN" }];
+      hqCountry = "United Kingdom";
+      hqCity = "Cambridge";
     } else if (qLower.includes("tech") || qLower.includes("google") || qLower.includes("microsoft") || qLower.includes("apple") || qLower.includes("meta") || qLower.includes("amazon")) {
       industry = "Technology";
     }
