@@ -315,6 +315,62 @@ Do not write any code or explanation. Return ONLY the valid JSON object.`;
       }
     }
 
+    // 3b. Sweep competitors for this account to populate their signals
+    try {
+      console.log(`Checking competitor links for account: ${accountId}`);
+      const competitorLinks = await db.competitorSet.findMany({
+        where: { accountId },
+        include: { competitorEntity: true }
+      });
+
+      for (const link of competitorLinks) {
+        const comp = link.competitorEntity;
+        // Check if we already have signals for this competitor under this account
+        const compSignalsCount = await db.signal.count({
+          where: { accountId, entityId: comp.id }
+        });
+
+        if (compSignalsCount === 0) {
+          console.log(`Competitor ${comp.displayName} has 0 signals under account ${accountId}. Running sweep...`);
+          try {
+            const compAliases = getEntityAliases(comp.displayName);
+            const compArticles = await fetchNewsForEntity(comp.displayName, compAliases, backfillDays);
+            console.log(`Retrieved ${compArticles.length} raw articles for competitor ${comp.displayName}`);
+
+            // Limit competitor articles to 8 to stay within rate limits but still get high-quality signals
+            for (const art of compArticles.slice(0, 8)) {
+              try {
+                const classified = await classifyArticle(art, comp.displayName);
+                if (classified.relevance < 6) continue;
+
+                await ingestSignal({
+                  entityId: comp.id,
+                  aboutRole: "competitor",
+                  accountId: accountId, // Save under target's account
+                  category: classified.category,
+                  type: classified.type,
+                  severity: classified.severity,
+                  title: classified.title,
+                  summary: classified.summary,
+                  rawExcerpt: classified.rawExcerpt || art.title,
+                  publishedAt: new Date(art.publishedAt),
+                  sources: [{ publisher: art.publisher, url: art.url }],
+                  confidence: classified.confidence,
+                  embedding: classified.embedding,
+                });
+              } catch (artErr) {
+                console.error(`Failed to process competitor article "${art.title}":`, artErr);
+              }
+            }
+          } catch (compErr) {
+            console.error(`Failed to sweep competitor ${comp.displayName}:`, compErr);
+          }
+        }
+      }
+    } catch (competitorSweepErr) {
+      console.error("Competitor sweep iteration failed:", competitorSweepErr);
+    }
+
     console.log(`Sweep completed successfully for ${entity.displayName}`);
     return true;
   } catch (err) {

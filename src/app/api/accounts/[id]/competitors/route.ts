@@ -261,6 +261,14 @@ export async function GET(
       }
 
       await ensureCompetitorSet(targetEntity);
+
+      // Trigger background competitor sweep asynchronously
+      try {
+        const { runSweep } = await import("@/lib/agents/sweep");
+        runSweep(id, 180).catch(err => console.error("Background competitor sweep failed:", err));
+      } catch (sweepErr) {
+        console.error("Failed to trigger background competitor sweep:", sweepErr);
+      }
     }
 
     const competitorLinks = await db.competitorSet.findMany({
