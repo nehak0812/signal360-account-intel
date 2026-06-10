@@ -814,7 +814,7 @@ export default function SignalDashboard() {
                       tooltipTitle="Financial Reporting Period"
                       tooltipContent={
                         <div className="space-y-1">
-                          <p>Unilever's financial reporting year ends on <strong>December 31st</strong>.</p>
+                          <p>{currentEntityName}'s financial reporting year ends on <strong>December 31st</strong>.</p>
                           <p className="mt-1">FY2025 metrics reflect the full-year reporting period ending December 31, 2025.</p>
                         </div>
                       }
@@ -1872,7 +1872,7 @@ export default function SignalDashboard() {
                     <div>
                       <div className="eyebrow font-mono text-[10px] tracking-widest text-brand font-semibold uppercase">Financial Deep-Dive</div>
                       <h1 className="ptitle font-display font-semibold text-[30px] leading-tight text-ink mt-[7px] mb-[5px] tracking-tight">Financials</h1>
-                      <p className="psub text-ink-soft text-[14px] max-w-[700px]">Strictly filings-sourced metrics parsed from SEC 20-F annual and 6-K quarterly reports. Every value includes full provenance. Unilever's financial reporting year ends on <strong>December 31st</strong>.</p>
+                      <p className="psub text-ink-soft text-[14px] max-w-[700px]">Strictly filings-sourced metrics parsed from SEC 20-F annual and 6-K quarterly reports. Every value includes full provenance. {currentEntityName}'s financial reporting year ends on <strong>December 31st</strong>.</p>
                     </div>
                     <div className="flex-shrink-0">
                       <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-paper-3 border border-line font-mono text-[11px] text-ink-soft">
@@ -2126,7 +2126,7 @@ export default function SignalDashboard() {
                           </div>
                         ) : (
                           <div className="py-2 text-[12.8px] text-ink-soft leading-normal font-mono">
-                            ℹ️ No major leadership appointments, departures, or board changes have been registered for {overview?.entity?.display_name || "Unilever"} in the past 6 months. Executive leadership stability remains fully maintained.
+                            ℹ️ No major leadership appointments, departures, or board changes have been registered for {currentEntityName} in the past 6 months. Executive leadership stability remains fully maintained.
                           </div>
                         )}
                       </Card>
@@ -2395,7 +2395,7 @@ export default function SignalDashboard() {
                   <div className="phead text-left mb-[22px]">
                     <div className="eyebrow font-mono text-[10px] tracking-widest text-brand font-semibold uppercase">Geo &amp; Industry Context</div>
                     <h1 className="ptitle font-display font-semibold text-[30px] leading-tight text-ink mt-[7px] mb-[5px] tracking-tight">
-                      The world around {overview?.entity?.display_name || "Unilever"}
+                      The world around {currentEntityName}
                     </h1>
                     <p className="psub text-ink-soft text-[14px] max-w-[700px]">Macro economic conditions, sector developments, and geopolitical alerts that frame the operating environment.</p>
                   </div>
@@ -2511,7 +2511,7 @@ export default function SignalDashboard() {
                 <div className="at font-semibold text-[13px] text-ink">{alert.title}</div>
                 <div className="ad text-[12px] text-ink-soft mt-[2px] leading-relaxed">{alert.body}</div>
                 <div className="atm font-mono text-[9.5px] text-ink-faint mt-[5px] uppercase">
-                  UNILEVER · {new Date(alert.createdAt).toLocaleDateString()}
+                  {currentEntityName} · {new Date(alert.createdAt).toLocaleDateString()}
                 </div>
               </div>
             </div>
