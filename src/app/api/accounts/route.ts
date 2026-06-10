@@ -17,6 +17,32 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    if (entity) {
+      const isOutdated = (entity.industry?.includes("FMCG") && !candidate.industry?.includes("FMCG")) ||
+                         (entity.tickers?.includes("GOLD") && !JSON.stringify(candidate.tickers).includes("GOLD"));
+      if (isOutdated) {
+        console.log(`Updating outdated entity in database: ${entity.displayName}`);
+        entity = await db.entity.update({
+          where: { id: entity.id },
+          data: {
+            legalName: candidate.legalName,
+            displayName: candidate.displayName,
+            domain: candidate.domain || entity.domain,
+            tickers: candidate.tickers ? JSON.stringify(candidate.tickers) : entity.tickers,
+            industry: candidate.industry || entity.industry,
+            hqCountry: candidate.hqCountry || entity.hqCountry,
+            hqCity: candidate.hqCity || entity.hqCity,
+            identifiers: candidate.identifiers ? JSON.stringify(candidate.identifiers) : entity.identifiers,
+            isPublic: candidate.isPublic ?? entity.isPublic,
+          }
+        });
+        
+        // Wipe old competitors and competitor signals so they recreate under the new sector
+        await db.competitorSet.deleteMany({ where: { accountId: entity.id } });
+        await db.signal.deleteMany({ where: { accountId: entity.id, entityId: { not: entity.id } } });
+      }
+    }
+
     if (!entity) {
       console.log(`Creating new entity in database: ${candidate.displayName}`);
       entity = await db.entity.create({

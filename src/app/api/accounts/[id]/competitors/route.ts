@@ -164,8 +164,79 @@ export async function GET(
   dateLimit180.setDate(dateLimit180.getDate() - 180);
 
   try {
-    const targetEntity = await db.entity.findUnique({ where: { id } });
+    let targetEntity = await db.entity.findUnique({ where: { id } });
     if (targetEntity) {
+      // Self-correcting block for corrupted database rows
+      const nameLower = targetEntity.displayName.toLowerCase();
+      if (nameLower.includes("goldman") || nameLower.includes("sachs")) {
+        const hasWrongIndustry = targetEntity.industry?.includes("FMCG") || targetEntity.industry?.includes("Consumer");
+        const hasWrongTicker = targetEntity.tickers?.includes("GOLD");
+        if (hasWrongIndustry || hasWrongTicker) {
+          console.log(`Self-correcting Goldman Sachs database entry...`);
+          targetEntity = await db.entity.update({
+            where: { id },
+            data: {
+              legalName: "The Goldman Sachs Group, Inc.",
+              displayName: "Goldman Sachs",
+              tickers: JSON.stringify([{ exchange: "NYSE", symbol: "GS" }]),
+              industry: "Investment Banking / Financial Services",
+              isPublic: true
+            }
+          });
+          // Wipe old competitors and competitor signals so they recreate under the new sector
+          await db.competitorSet.deleteMany({ where: { accountId: id } });
+          await db.signal.deleteMany({ where: { accountId: id, entityId: { not: id } } });
+        }
+      } else if (nameLower.includes("astrazeneca") || nameLower.includes("astra zeneca")) {
+        const hasWrongIndustry = !targetEntity.industry?.includes("Pharma") && !targetEntity.industry?.includes("Life Science");
+        if (hasWrongIndustry) {
+          targetEntity = await db.entity.update({
+            where: { id },
+            data: {
+              legalName: "AstraZeneca PLC",
+              displayName: "AstraZeneca",
+              tickers: JSON.stringify([{ exchange: "NASDAQ", symbol: "AZN" }, { exchange: "LSE", symbol: "AZN" }]),
+              industry: "Pharmaceuticals / Life Sciences",
+              isPublic: true
+            }
+          });
+          await db.competitorSet.deleteMany({ where: { accountId: id } });
+          await db.signal.deleteMany({ where: { accountId: id, entityId: { not: id } } });
+        }
+      } else if (nameLower.includes("google") || nameLower.includes("alphabet")) {
+        const hasWrongIndustry = !targetEntity.industry?.includes("Tech");
+        if (hasWrongIndustry) {
+          targetEntity = await db.entity.update({
+            where: { id },
+            data: {
+              legalName: "Alphabet Inc.",
+              displayName: "Google",
+              tickers: JSON.stringify([{ exchange: "NASDAQ", symbol: "GOOGL" }]),
+              industry: "Technology / Internet Services",
+              isPublic: true
+            }
+          });
+          await db.competitorSet.deleteMany({ where: { accountId: id } });
+          await db.signal.deleteMany({ where: { accountId: id, entityId: { not: id } } });
+        }
+      } else if (nameLower.includes("microsoft") || nameLower.includes("msft")) {
+        const hasWrongIndustry = !targetEntity.industry?.includes("Tech");
+        if (hasWrongIndustry) {
+          targetEntity = await db.entity.update({
+            where: { id },
+            data: {
+              legalName: "Microsoft Corporation",
+              displayName: "Microsoft",
+              tickers: JSON.stringify([{ exchange: "NASDAQ", symbol: "MSFT" }]),
+              industry: "Technology / Software & Cloud",
+              isPublic: true
+            }
+          });
+          await db.competitorSet.deleteMany({ where: { accountId: id } });
+          await db.signal.deleteMany({ where: { accountId: id, entityId: { not: id } } });
+        }
+      }
+
       await ensureCompetitorSet(targetEntity);
     }
 
