@@ -478,12 +478,27 @@ export async function GET(
 
     if (!summaryText) {
       const ind = entity.industry || "Professional Services";
-      const isConsulting = ind.toLowerCase().includes("services") || ind.toLowerCase().includes("consulting") || ind.toLowerCase().includes("audit") || entity.displayName.toLowerCase().includes("ernst") || entity.displayName.toLowerCase().includes("young") || entity.displayName.toLowerCase().includes("ey");
-      
+      const isConsulting = (ind.toLowerCase().includes("services") && !ind.toLowerCase().includes("financial") && !ind.toLowerCase().includes("consumer") && !ind.toLowerCase().includes("internet") && !ind.toLowerCase().includes("technology")) || ind.toLowerCase().includes("consulting") || ind.toLowerCase().includes("audit") || entity.displayName.toLowerCase().includes("ernst") || entity.displayName.toLowerCase().includes("young") || entity.displayName.toLowerCase().includes("ey");
+      const isFinancial = ind.toLowerCase().includes("financial") || ind.toLowerCase().includes("banking") || ind.toLowerCase().includes("wealth") || ind.toLowerCase().includes("investment") || entity.displayName.toLowerCase().includes("goldman") || entity.displayName.toLowerCase().includes("sachs") || entity.displayName.toLowerCase().includes("jpmorgan") || entity.displayName.toLowerCase().includes("morgan stanley") || entity.displayName.toLowerCase().includes("citi");
+      const isPharma = ind.toLowerCase().includes("pharma") || ind.toLowerCase().includes("life science") || ind.toLowerCase().includes("health") || ind.toLowerCase().includes("biotech") || entity.displayName.toLowerCase().includes("astrazeneca") || entity.displayName.toLowerCase().includes("pfizer") || entity.displayName.toLowerCase().includes("roche") || entity.displayName.toLowerCase().includes("novartis");
+      const isTech = ind.toLowerCase().includes("technology") || ind.toLowerCase().includes("software") || ind.toLowerCase().includes("internet") || entity.displayName.toLowerCase().includes("google") || entity.displayName.toLowerCase().includes("alphabet") || entity.displayName.toLowerCase().includes("microsoft") || entity.displayName.toLowerCase().includes("apple");
+
       if (isConsulting) {
         summaryText = `${entity.displayName} is a leading global professional services organization, delivering audit, tax, consulting, and advisory solutions to enterprise clients worldwide.`;
         growthSummaryText = `Growth is driven by expansion in digital transformation advisory, corporate AI integration consulting, and robust demand for tax and regulatory compliance services.`;
         riskSummaryText = `Key risk exposures include global talent retention, regulatory changes in audit independence rules, and competition from alternative delivery models.`;
+      } else if (isFinancial) {
+        summaryText = `${entity.displayName} is a premier global financial institution, providing investment banking, wealth management, securities, and institutional asset management services.`;
+        growthSummaryText = `Growth is driven by digital client platform scaling, advisory fees from robust M&A activity, and strategic asset management inflows.`;
+        riskSummaryText = `Key risk exposures include shifting global interest rate policies, market volatility, regulatory capital constraints under Basel III, and cybersecurity threats.`;
+      } else if (isPharma) {
+        summaryText = `${entity.displayName} is a leading global biopharmaceutical company dedicated to the discovery, development, and commercialization of innovative prescription medicines.`;
+        growthSummaryText = `Growth is driven by strong clinical development pipelines, regulatory approvals in oncology and rare diseases, and expansion in biotech therapies.`;
+        riskSummaryText = `Key risk exposures include patent expirations, drug pricing regulation policies, high research capital loss risks, and clinical trial timeline delays.`;
+      } else if (isTech) {
+        summaryText = `${entity.displayName} is a global technology leader, specializing in cloud computing software, hardware platforms, digital services, and consumer ecosystems.`;
+        growthSummaryText = `Growth is driven by hyperscale cloud AI infrastructure demand, commercial subscription model scaling, and device upgrade cycles.`;
+        riskSummaryText = `Key risk exposures include high capital expenditures on datacenters, global antitrust regulatory compliance, and rapid technological disruption.`;
       } else {
         summaryText = `${entity.displayName} is a leading player in the ${ind} sector, focusing on strategic operations, brand value optimization, and long-term market leadership.`;
         growthSummaryText = `Growth is driven by service/product innovation, digital commerce channels, and geographical market expansion.`;
@@ -493,8 +508,11 @@ export async function GET(
 
     if (!swotData) {
       const ind = entity.industry || "Consumer Goods";
-      const isConsulting = ind.toLowerCase().includes("services") || ind.toLowerCase().includes("consulting") || ind.toLowerCase().includes("audit") || entity.displayName.toLowerCase().includes("ernst") || entity.displayName.toLowerCase().includes("young") || entity.displayName.toLowerCase().includes("ey");
-      
+      const isConsulting = (ind.toLowerCase().includes("services") && !ind.toLowerCase().includes("financial") && !ind.toLowerCase().includes("consumer") && !ind.toLowerCase().includes("internet") && !ind.toLowerCase().includes("technology")) || ind.toLowerCase().includes("consulting") || ind.toLowerCase().includes("audit") || entity.displayName.toLowerCase().includes("ernst") || entity.displayName.toLowerCase().includes("young") || entity.displayName.toLowerCase().includes("ey");
+      const isFinancial = ind.toLowerCase().includes("financial") || ind.toLowerCase().includes("banking") || ind.toLowerCase().includes("wealth") || ind.toLowerCase().includes("investment") || entity.displayName.toLowerCase().includes("goldman") || entity.displayName.toLowerCase().includes("sachs") || entity.displayName.toLowerCase().includes("jpmorgan") || entity.displayName.toLowerCase().includes("morgan stanley") || entity.displayName.toLowerCase().includes("citi");
+      const isPharma = ind.toLowerCase().includes("pharma") || ind.toLowerCase().includes("life science") || ind.toLowerCase().includes("health") || ind.toLowerCase().includes("biotech") || entity.displayName.toLowerCase().includes("astrazeneca") || entity.displayName.toLowerCase().includes("pfizer") || entity.displayName.toLowerCase().includes("roche") || entity.displayName.toLowerCase().includes("novartis");
+      const isTech = ind.toLowerCase().includes("technology") || ind.toLowerCase().includes("software") || ind.toLowerCase().includes("internet") || entity.displayName.toLowerCase().includes("google") || entity.displayName.toLowerCase().includes("alphabet") || entity.displayName.toLowerCase().includes("microsoft") || entity.displayName.toLowerCase().includes("apple");
+
       if (isConsulting) {
         swotData = {
           strengths: [
@@ -512,6 +530,63 @@ export async function GET(
           threats: [
             "Increasing regulatory scrutiny over audit independence and dual-service provision.",
             "Disruption from niche boutiques and digital automation of compliance tasks."
+          ]
+        };
+      } else if (isFinancial) {
+        swotData = {
+          strengths: [
+            "Unmatched global client relationships, deep underwriting expertise, and strong asset management fee base.",
+            "Diversified revenue streams across trading desks, advisory fees, and wealth management."
+          ],
+          weaknesses: [
+            "Highly sensitive to macroeconomic cycles, credit crunches, and global market volatility.",
+            "Heavy compliance overhead and rising operational risk costs."
+          ],
+          opportunities: [
+            "Leveraging AI for high-speed quantitative trading and automated risk scoring.",
+            "Expanding digital private wealth management services to cover high-net-worth clients globally."
+          ],
+          threats: [
+            "Strict regulatory requirements under Basel III and Dodd-Frank capping leverage.",
+            "Rising competition from agile fintech startups and decentralized payment systems."
+          ]
+        };
+      } else if (isPharma) {
+        swotData = {
+          strengths: [
+            "Robust global distribution network and established blockbuster therapeutics (e.g., oncology, vaccines).",
+            "Strong IP portfolio and high-caliber scientific research capabilities."
+          ],
+          weaknesses: [
+            "Extremely long, capital-intensive research cycles with high clinical trial failure rates.",
+            "Dependency on a few key high-revenue blockbuster patents."
+          ],
+          opportunities: [
+            "Scaling mRNA and immunological cell-therapy drug development platforms.",
+            "Leveraging AI for faster molecular discovery and molecular target simulation."
+          ],
+          threats: [
+            "Intense generic and biosimilar competition immediately post patent expiration.",
+            "Government drug pricing regulations (e.g., IRA price negotiation provisions in the US)."
+          ]
+        };
+      } else if (isTech) {
+        swotData = {
+          strengths: [
+            "Dominant platform ecosystems with extremely high user switching costs.",
+            "Exceptional free cash flow generation and cash reserves to fund R&D."
+          ],
+          weaknesses: [
+            "Frequent operational exposure to data privacy concerns and algorithmic biases.",
+            "Complexity in managing global multi-product software platforms."
+          ],
+          opportunities: [
+            "Monetizing next-generation developer AI models and cloud computing nodes.",
+            "Scaling hardware integration and smart accessories into next-gen consumer IoT."
+          ],
+          threats: [
+            "Heavy regulatory scrutiny, antitrust suits, and platform breakup risks from global watchdogs.",
+            "Rapid tech cycles where new computing models can render legacy code bases obsolete."
           ]
         };
       } else {
