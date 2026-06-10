@@ -105,7 +105,7 @@ async function ensureCompetitorSet(targetEntity: any) {
     !targetEntity.displayName.toLowerCase().includes(spec.name.toLowerCase())
   );
 
-  let rank = 1;
+  const resolvedEntityIds: string[] = [];
   for (const spec of filteredSpecs) {
     let compEntity = await db.entity.findFirst({
       where: {
@@ -129,25 +129,48 @@ async function ensureCompetitorSet(targetEntity: any) {
         }
       });
     }
+    resolvedEntityIds.push(compEntity.id);
+  }
 
+  // Delete all agent-source competitor links that are NOT in the resolved set
+  await db.competitorSet.deleteMany({
+    where: {
+      accountId: targetEntity.id,
+      source: "agent",
+      competitorEntityId: { notIn: resolvedEntityIds }
+    }
+  });
+
+  // Link or update the new ones
+  let rank = 1;
+  for (const compId of resolvedEntityIds) {
     const exists = await db.competitorSet.findUnique({
       where: {
         accountId_competitorEntityId: {
           accountId: targetEntity.id,
-          competitorEntityId: compEntity.id
+          competitorEntityId: compId
         }
       }
     });
 
     if (!exists) {
-      console.log(`Linking competitor: ${spec.name} to target: ${targetEntity.displayName}`);
       await db.competitorSet.create({
         data: {
           accountId: targetEntity.id,
-          competitorEntityId: compEntity.id,
+          competitorEntityId: compId,
           rank: rank++,
           source: "agent"
         }
+      });
+    } else {
+      await db.competitorSet.update({
+        where: {
+          accountId_competitorEntityId: {
+            accountId: targetEntity.id,
+            competitorEntityId: compId
+          }
+        },
+        data: { rank: rank++ }
       });
     }
   }
@@ -169,7 +192,7 @@ export async function GET(
       // Self-correcting block for corrupted database rows
       const nameLower = targetEntity.displayName.toLowerCase();
       if (nameLower.includes("goldman") || nameLower.includes("sachs")) {
-        const hasWrongIndustry = targetEntity.industry?.includes("FMCG") || targetEntity.industry?.includes("Consumer");
+        const hasWrongIndustry = !targetEntity.industry?.toLowerCase().includes("financial") && !targetEntity.industry?.toLowerCase().includes("banking");
         const hasWrongTicker = targetEntity.tickers?.includes("GOLD");
         if (hasWrongIndustry || hasWrongTicker) {
           console.log(`Self-correcting Goldman Sachs database entry...`);

@@ -27,7 +27,7 @@ export async function GET(
     // Self-correcting block for corrupted database rows
     const nameLower = entity.displayName.toLowerCase();
     if (nameLower.includes("goldman") || nameLower.includes("sachs")) {
-      const hasWrongIndustry = entity.industry?.includes("FMCG") || entity.industry?.includes("Consumer");
+      const hasWrongIndustry = !entity.industry?.toLowerCase().includes("financial") && !entity.industry?.toLowerCase().includes("banking");
       const hasWrongTicker = entity.tickers?.includes("GOLD");
       if (hasWrongIndustry || hasWrongTicker) {
         console.log(`Self-correcting Goldman Sachs database entry...`);
