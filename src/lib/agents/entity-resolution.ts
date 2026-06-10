@@ -213,6 +213,62 @@ Do not write any code or explanation. Return ONLY the valid JSON array of candid
           isPublic: false,
         }
       ];
+    } else if (qLower.includes("goldman") || qLower.includes("sachs") || qLower.includes("gs")) {
+      return [
+        {
+          legalName: "The Goldman Sachs Group, Inc.",
+          displayName: "Goldman Sachs",
+          domain: "goldmansachs.com",
+          tickers: [{ exchange: "NYSE", symbol: "GS" }],
+          industry: "Investment Banking / Financial Services",
+          hqCountry: "United States",
+          hqCity: "New York",
+          identifiers: { CIK: "0000886982" },
+          isPublic: true,
+        }
+      ];
+    } else if (qLower.includes("google") || qLower.includes("alphabet")) {
+      return [
+        {
+          legalName: "Alphabet Inc.",
+          displayName: "Google",
+          domain: "google.com",
+          tickers: [{ exchange: "NASDAQ", symbol: "GOOGL" }],
+          industry: "Technology / Internet Services",
+          hqCountry: "United States",
+          hqCity: "Mountain View",
+          identifiers: { CIK: "0001652044" },
+          isPublic: true,
+        }
+      ];
+    } else if (qLower.includes("microsoft") || qLower.includes("msft")) {
+      return [
+        {
+          legalName: "Microsoft Corporation",
+          displayName: "Microsoft",
+          domain: "microsoft.com",
+          tickers: [{ exchange: "NASDAQ", symbol: "MSFT" }],
+          industry: "Technology / Software & Cloud",
+          hqCountry: "United States",
+          hqCity: "Redmond",
+          identifiers: { CIK: "0000789019" },
+          isPublic: true,
+        }
+      ];
+    } else if (qLower.includes("astrazeneca") || qLower.includes("astra zeneca") || qLower.includes("azn")) {
+      return [
+        {
+          legalName: "AstraZeneca PLC",
+          displayName: "AstraZeneca",
+          domain: "astrazeneca.com",
+          tickers: [{ exchange: "NASDAQ", symbol: "AZN" }, { exchange: "LSE", symbol: "AZN" }],
+          industry: "Pharmaceuticals / Life Sciences",
+          hqCountry: "United Kingdom",
+          hqCity: "Cambridge",
+          identifiers: { CIK: "0000901832" },
+          isPublic: true,
+        }
+      ];
     }
 
     // Generic fallback for any other company search to allow registering anything

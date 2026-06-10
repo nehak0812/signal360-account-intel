@@ -8,16 +8,20 @@ export const dynamic = "force-dynamic";
 
 const yahooFinance = new YahooFinance();
 
-async function ensureCompetitorSet(targetEntity: any) {
-  const nameLower = targetEntity.displayName.toLowerCase();
-  const industry = (targetEntity.industry || "").toLowerCase();
-  
-  const isConsulting = nameLower.includes("ernst") || nameLower.includes("ey") || nameLower.includes("young") || nameLower.includes("deloitte") || nameLower.includes("pwc") || nameLower.includes("kpmg") || nameLower.includes("mckinsey") || nameLower.includes("accenture") || nameLower.includes("bcg") || nameLower.includes("bain") || industry.includes("consulting") || industry.includes("audit") || industry.includes("services");
-  
-  let competitorSpecs: { name: string; legalName: string; domain: string; industry: string; ticker: string; ex: string; isPublic: boolean }[] = [];
-  
+function getCompetitorSpecs(displayName: string, industry: string) {
+  const nameLower = displayName.toLowerCase();
+  const indLower = (industry || "").toLowerCase();
+
+  const isConsulting = nameLower.includes("deloitte") || nameLower.includes("pwc") || nameLower.includes("kpmg") || nameLower.includes("mckinsey") || nameLower.includes("accenture") || nameLower.includes("bcg") || nameLower.includes("bain") || nameLower.includes("ernst") || nameLower.includes("ey") || nameLower.includes("young") || indLower.includes("consulting") || indLower.includes("audit") || indLower.includes("services");
+
+  const isFinancial = nameLower.includes("goldman") || nameLower.includes("sachs") || nameLower.includes("morgan stanley") || nameLower.includes("jpmorgan") || nameLower.includes("jp morgan") || nameLower.includes("citi") || nameLower.includes("bank of america") || indLower.includes("financial") || indLower.includes("banking") || indLower.includes("wealth") || indLower.includes("investment");
+
+  const isPharma = nameLower.includes("astrazeneca") || nameLower.includes("astra zeneca") || nameLower.includes("pfizer") || nameLower.includes("roche") || nameLower.includes("novartis") || nameLower.includes("merck") || indLower.includes("pharma") || indLower.includes("life science") || indLower.includes("health") || indLower.includes("biotech");
+
+  const isTech = nameLower.includes("google") || nameLower.includes("alphabet") || nameLower.includes("microsoft") || nameLower.includes("apple") || nameLower.includes("meta") || nameLower.includes("amazon") || indLower.includes("technology") || indLower.includes("software") || indLower.includes("internet");
+
   if (isConsulting) {
-    competitorSpecs = [
+    return [
       { name: "Deloitte", legalName: "Deloitte Touche Tohmatsu Limited", domain: "deloitte.com", industry: "Professional Services / Consulting", ticker: "", ex: "", isPublic: false },
       { name: "PwC", legalName: "PricewaterhouseCoopers International Limited", domain: "pwc.com", industry: "Professional Services / Consulting", ticker: "", ex: "", isPublic: false },
       { name: "KPMG", legalName: "KPMG International Limited", domain: "kpmg.com", industry: "Professional Services / Consulting", ticker: "", ex: "", isPublic: false },
@@ -26,9 +30,32 @@ async function ensureCompetitorSet(targetEntity: any) {
       { name: "Boston Consulting Group", legalName: "The Boston Consulting Group, Inc.", domain: "bcg.com", industry: "Professional Services / Consulting", ticker: "", ex: "", isPublic: false },
       { name: "Bain & Company", legalName: "Bain & Company, Inc.", domain: "bain.com", industry: "Professional Services / Consulting", ticker: "", ex: "", isPublic: false }
     ];
+  } else if (isFinancial) {
+    return [
+      { name: "JPMorgan Chase", legalName: "JPMorgan Chase & Co.", domain: "jpmorganchase.com", industry: "Investment Banking / Financial Services", ticker: "JPM", ex: "NYSE", isPublic: true },
+      { name: "Morgan Stanley", legalName: "Morgan Stanley", domain: "morganstanley.com", industry: "Investment Banking / Financial Services", ticker: "MS", ex: "NYSE", isPublic: true },
+      { name: "Goldman Sachs", legalName: "The Goldman Sachs Group, Inc.", domain: "goldmansachs.com", industry: "Investment Banking / Financial Services", ticker: "GS", ex: "NYSE", isPublic: true },
+      { name: "Citigroup", legalName: "Citigroup Inc.", domain: "citigroup.com", industry: "Investment Banking / Financial Services", ticker: "C", ex: "NYSE", isPublic: true },
+      { name: "Bank of America", legalName: "Bank of America Corporation", domain: "bankofamerica.com", industry: "Investment Banking / Financial Services", ticker: "BAC", ex: "NYSE", isPublic: true }
+    ];
+  } else if (isPharma) {
+    return [
+      { name: "AstraZeneca", legalName: "AstraZeneca PLC", domain: "astrazeneca.com", industry: "Pharmaceuticals / Life Sciences", ticker: "AZN", ex: "NASDAQ", isPublic: true },
+      { name: "Pfizer", legalName: "Pfizer Inc.", domain: "pfizer.com", industry: "Pharmaceuticals / Life Sciences", ticker: "PFE", ex: "NYSE", isPublic: true },
+      { name: "Roche", legalName: "Roche Holding AG", domain: "roche.com", industry: "Pharmaceuticals / Life Sciences", ticker: "ROG", ex: "SIX", isPublic: true },
+      { name: "Novartis", legalName: "Novartis AG", domain: "novartis.com", industry: "Pharmaceuticals / Life Sciences", ticker: "NVS", ex: "NYSE", isPublic: true },
+      { name: "Merck", legalName: "Merck & Co., Inc.", domain: "merck.com", industry: "Pharmaceuticals / Life Sciences", ticker: "MRK", ex: "NYSE", isPublic: true }
+    ];
+  } else if (isTech) {
+    return [
+      { name: "Google", legalName: "Alphabet Inc.", domain: "google.com", industry: "Technology", ticker: "GOOGL", ex: "NASDAQ", isPublic: true },
+      { name: "Microsoft", legalName: "Microsoft Corporation", domain: "microsoft.com", industry: "Technology", ticker: "MSFT", ex: "NASDAQ", isPublic: true },
+      { name: "Apple", legalName: "Apple Inc.", domain: "apple.com", industry: "Technology", ticker: "AAPL", ex: "NASDAQ", isPublic: true },
+      { name: "Meta", legalName: "Meta Platforms, Inc.", domain: "meta.com", industry: "Technology", ticker: "META", ex: "NASDAQ", isPublic: true },
+      { name: "Amazon", legalName: "Amazon.com, Inc.", domain: "amazon.com", industry: "Technology", ticker: "AMZN", ex: "NASDAQ", isPublic: true }
+    ];
   } else {
-    // Consumer goods / FMCG
-    competitorSpecs = [
+    return [
       { name: "Unilever PLC", legalName: "Unilever PLC", domain: "unilever.com", industry: "Consumer Goods (FMCG)", ticker: "ULVR", ex: "LSE", isPublic: true },
       { name: "Nestlé", legalName: "Nestlé S.A.", domain: "nestle.com", industry: "Consumer Goods (FMCG)", ticker: "NESN", ex: "SIX", isPublic: true },
       { name: "Procter & Gamble", legalName: "Procter & Gamble Co", domain: "pg.com", industry: "Consumer Goods (FMCG)", ticker: "PG", ex: "NYSE", isPublic: true },
@@ -36,7 +63,42 @@ async function ensureCompetitorSet(targetEntity: any) {
       { name: "Reckitt", legalName: "Reckitt Benckiser Group plc", domain: "reckitt.com", industry: "Consumer Goods (FMCG)", ticker: "RKT", ex: "LSE", isPublic: true }
     ];
   }
+}
+
+async function ensureCompetitorSet(targetEntity: any) {
+  const nameLower = targetEntity.displayName.toLowerCase();
   
+  let competitorSpecs: { name: string; legalName: string; domain: string; industry: string; ticker: string; ex: string; isPublic: boolean }[] = [];
+  
+  // Try dynamic resolution first if Gemini API key is configured
+  if (process.env.GEMINI_API_KEY) {
+    try {
+      const prompt = `
+        You are an elite corporate intelligence agent. For the target company "${targetEntity.displayName}" in the industry "${targetEntity.industry}", identify 5 main direct corporate competitors that are publicly traded or major industry players.
+        Return the output as a strict JSON array of objects matching this schema:
+        [
+          { "name": "Competitor Name", "legalName": "Official Legal Name", "domain": "competitorwebdomain.com", "industry": "Sector Name", "ticker": "TICKER", "ex": "ExchangeName (e.g. NYSE, NASDAQ, LSE)", "isPublic": true }
+        ]
+        Do not write code, return ONLY the strict JSON array.
+      `;
+      const response = await ai.models.generateContent({
+        model: DEFAULT_MODEL,
+        contents: prompt,
+        config: { responseMimeType: "application/json" }
+      });
+      if (response.text) {
+        competitorSpecs = JSON.parse(response.text);
+      }
+    } catch (e) {
+      console.error("Gemini dynamic competitor resolution failed, falling back to static lists:", e);
+    }
+  }
+  
+  // Use static fallbacks if Gemini failed or is not configured
+  if (competitorSpecs.length === 0) {
+    competitorSpecs = getCompetitorSpecs(targetEntity.displayName, targetEntity.industry);
+  }
+
   // Filter out the target itself from the competitor specifications
   const filteredSpecs = competitorSpecs.filter(spec => 
     !spec.name.toLowerCase().includes(nameLower) && 
@@ -193,6 +255,21 @@ export async function GET(
         else if (cName.includes("boston") || cName.includes("bcg")) { revenue = "$12.5B"; margin = "36.0%"; }
         else if (cName.includes("bain")) { revenue = "$8.5B"; margin = "35.0%"; }
         else if (cName.includes("ernst") || cName.includes("ey") || cName.includes("young")) { revenue = "$51.2B"; margin = "34.0%"; }
+        else if (cName.includes("jpmorgan") || cName.includes("jp morgan")) { revenue = "$162.6B"; margin = "21.0%"; }
+        else if (cName.includes("morgan stanley")) { revenue = "$54.1B"; margin = "26.0%"; }
+        else if (cName.includes("goldman")) { revenue = "$51.3B"; margin = "32.4%"; }
+        else if (cName.includes("citigroup") || cName.includes("citi")) { revenue = "$78.5B"; margin = "18.0%"; }
+        else if (cName.includes("bank of america")) { revenue = "$98.6B"; margin = "20.0%"; }
+        else if (cName.includes("astrazeneca") || cName.includes("astra zeneca")) { revenue = "$48.5B"; margin = "72.4%"; }
+        else if (cName.includes("pfizer")) { revenue = "$58.5B"; margin = "68.2%"; }
+        else if (cName.includes("roche")) { revenue = "CHF 58.7B"; margin = "71.0%"; }
+        else if (cName.includes("novartis")) { revenue = "$48.8B"; margin = "71.5%"; }
+        else if (cName.includes("merck")) { revenue = "$60.1B"; margin = "72.9%"; }
+        else if (cName.includes("google") || cName.includes("alphabet")) { revenue = "$307.4B"; margin = "56.8%"; }
+        else if (cName.includes("microsoft")) { revenue = "$245.1B"; margin = "69.1%"; }
+        else if (cName.includes("apple")) { revenue = "$385.7B"; margin = "46.2%"; }
+        else if (cName.includes("meta")) { revenue = "$134.9B"; margin = "80.8%"; }
+        else if (cName.includes("amazon")) { revenue = "$574.8B"; margin = "46.9%"; }
         else { revenue = "$12.5B"; margin = "40.0%"; }
       }
 
@@ -222,10 +299,41 @@ export async function GET(
           businessSummary = "Boston Consulting Group is a leading global strategy consulting firm. They are expanding BCG X (their tech build and design unit) to capture client demand for corporate AI deployment and digital transformation.";
         } else if (cName.includes("bain")) {
           businessSummary = "Bain & Company is a global management consulting firm. They are market leaders in private equity advisory, merger integration services, and customer experience frameworks (Net Promoter System).";
+        } else if (cName.includes("jpmorgan") || cName.includes("jp morgan")) {
+          businessSummary = "JPMorgan Chase & Co. is a leading global financial services firm. They are scaling digital payments, investing heavily in cloud modernization, and expanding their commercial banking and wealth divisions.";
+        } else if (cName.includes("morgan stanley")) {
+          businessSummary = "Morgan Stanley is a global investment bank and wealth manager. They are leveraging their retail wealth acquisitions (E*TRADE and Eaton Vance) to drive recurring fee-based asset management revenues.";
+        } else if (cName.includes("goldman")) {
+          businessSummary = "The Goldman Sachs Group is a premier global investment banking, securities, and investment management firm. They are scaling back retail banking to refocus on institutional markets and wealth management.";
+        } else if (cName.includes("citigroup") || cName.includes("citi")) {
+          businessSummary = "Citigroup Inc. is a diversified financial services holding company. Under its current restructuring program, Citi is simplifying its global operating model and exiting non-core international retail markets.";
+        } else if (cName.includes("bank of america")) {
+          businessSummary = "Bank of America Corporation is a leading financial institution. They drive growth through digital banking initiatives, wealth management, and strong middle-market lending execution.";
+        } else if (cName.includes("astrazeneca") || cName.includes("astra zeneca")) {
+          businessSummary = "AstraZeneca PLC is a science-led biopharmaceutical company. They focus on oncology, cardiovascular, renal, metabolism, and respiratory therapies, driven by strong clinical pipelines and global product sales.";
+        } else if (cName.includes("pfizer")) {
+          businessSummary = "Pfizer Inc. is a global biopharmaceutical corporation. They are executing a post-pandemic cost-realignment plan and integrating Seagen to significantly bolster their long-term oncology therapeutics portfolio.";
+        } else if (cName.includes("roche")) {
+          businessSummary = "Roche Holding AG is a Swiss multinational healthcare company operating under pharmaceuticals and diagnostics divisions. They lead in in-vitro diagnostics and targeted oncology and immunology treatments.";
+        } else if (cName.includes("novartis")) {
+          businessSummary = "Novartis AG is a Swiss medicine company. Following the spinoff of Sandoz, Novartis is a pure-play innovative medicines company focusing on cardiovascular, immunology, oncology, and neuroscience therapies.";
+        } else if (cName.includes("merck")) {
+          businessSummary = "Merck & Co., Inc. is a global healthcare company. They are driven by the therapeutic success of oncology blockbuster Keytruda and growth in vaccines and animal health divisions.";
+        } else if (cName.includes("google") || cName.includes("alphabet")) {
+          businessSummary = "Alphabet Inc. is a global technology leader. They focus on search, online advertising, cloud computing, and hardware, while aggressively integrating generative AI models across consumer and enterprise products.";
+        } else if (cName.includes("microsoft")) {
+          businessSummary = "Microsoft Corporation is a global technology company. They lead in enterprise software, cloud computing (Azure), and gaming, and are scaling AI subscription solutions across their entire product portfolio.";
+        } else if (cName.includes("apple")) {
+          businessSummary = "Apple Inc. designs, manufactures, and markets smartphones, personal computers, tablets, wearables, and accessories. They focus on ecosystem premiumization and services revenue growth.";
+        } else if (cName.includes("meta")) {
+          businessSummary = "Meta Platforms, Inc. builds products that enable people to connect through mobile devices, personal computers, and other screens. They focus on advertising revenues and virtual reality/AI platforms.";
+        } else if (cName.includes("amazon")) {
+          businessSummary = "Amazon.com, Inc. focuses on e-commerce, cloud computing (AWS), digital streaming, and artificial intelligence. They lead in global e-commerce logistics and enterprise cloud infrastructure.";
         } else {
-          businessSummary = `${comp.displayName} is a major consumer goods company in the FMCG sector focusing on brand investment, productivity improvements, and distribution expansion.`;
+          businessSummary = `${comp.displayName} is a major competitor focusing on operational excellence, dynamic market execution, and technology-driven development.`;
         }
       }
+
 
       // Calculate sentiment dynamically
       const sentiment = ratioGrowthRisk >= 1.5 ? "+0.30" : ratioGrowthRisk < 0.67 ? "-0.15" : "+0.10";
@@ -356,7 +464,11 @@ export async function GET(
     if (themes.length === 0) {
       const nameLower = targetEntity?.displayName.toLowerCase() || "";
       const industry = (targetEntity?.industry || "").toLowerCase();
-      const isConsulting = nameLower.includes("ernst") || nameLower.includes("ey") || nameLower.includes("young") || nameLower.includes("deloitte") || nameLower.includes("pwc") || nameLower.includes("kpmg") || nameLower.includes("mckinsey") || nameLower.includes("accenture") || nameLower.includes("bcg") || nameLower.includes("bain") || industry.includes("consulting") || industry.includes("audit") || industry.includes("services");
+      
+      const isConsulting = nameLower.includes("deloitte") || nameLower.includes("pwc") || nameLower.includes("kpmg") || nameLower.includes("mckinsey") || nameLower.includes("accenture") || nameLower.includes("bcg") || nameLower.includes("bain") || nameLower.includes("ernst") || nameLower.includes("ey") || nameLower.includes("young") || industry.includes("consulting") || industry.includes("audit") || industry.includes("services");
+      const isFinancial = nameLower.includes("goldman") || nameLower.includes("sachs") || nameLower.includes("morgan stanley") || nameLower.includes("jpmorgan") || nameLower.includes("jp morgan") || nameLower.includes("citi") || nameLower.includes("bank of america") || industry.includes("financial") || industry.includes("banking") || industry.includes("wealth") || industry.includes("investment");
+      const isPharma = nameLower.includes("astrazeneca") || nameLower.includes("astra zeneca") || nameLower.includes("pfizer") || nameLower.includes("roche") || nameLower.includes("novartis") || nameLower.includes("merck") || industry.includes("pharma") || industry.includes("life science") || industry.includes("health") || industry.includes("biotech");
+      const isTech = nameLower.includes("google") || nameLower.includes("alphabet") || nameLower.includes("microsoft") || nameLower.includes("apple") || nameLower.includes("meta") || nameLower.includes("amazon") || industry.includes("technology") || industry.includes("software") || industry.includes("internet");
 
       if (isConsulting) {
         themes = [
@@ -377,6 +489,69 @@ export async function GET(
             type: "risk",
             title: "Operating Cost Rationalization",
             description: "Restructuring non-client-facing support roles and streamlining administrative structures to safeguard partner margins amidst cooling global advisory demand."
+          }
+        ];
+      } else if (isFinancial) {
+        themes = [
+          {
+            company: "JPMorgan Chase",
+            type: "growth",
+            title: "Digital Banking Expansion",
+            description: "Investing heavily in cloud-based payment infrastructure and digital wealth tools to attract and retain retail and corporate depositors globally."
+          },
+          {
+            company: "Morgan Stanley",
+            type: "growth",
+            title: "Wealth & Asset Management Growth",
+            description: "Leveraging key retail wealth brand integrations (E*TRADE and Eaton Vance) to expand high-margin fee-based asset management revenues."
+          },
+          {
+            company: "Goldman Sachs",
+            type: "risk",
+            title: "Strategic Capital Allocation",
+            description: "Managing the transition out of retail consumer banking while optimizing core asset management and trading desk capital ratios under Basel III guidelines."
+          }
+        ];
+      } else if (isPharma) {
+        themes = [
+          {
+            company: "AstraZeneca",
+            type: "growth",
+            title: "Oncology Portfolio Expansion",
+            description: "Driving double-digit growth in oncology revenues through key new indication approvals for blockbuster therapeutics Tagrisso and Enhertu."
+          },
+          {
+            company: "Pfizer",
+            type: "risk",
+            title: "Post-COVID Revenue Rebase",
+            description: "Navigating sharp declines in COVID-19 product revenues by executing a multibillion-dollar cost realignment and ramping up oncology investments."
+          },
+          {
+            company: "Roche",
+            type: "growth",
+            title: "Diagnostics & Immunology Focus",
+            description: "Expanding high-precision diagnostic systems and scaling new therapies in multiple sclerosis and oncology to offset biosimilar headwind pressures."
+          }
+        ];
+      } else if (isTech) {
+        themes = [
+          {
+            company: "Google",
+            type: "growth",
+            title: "AI Search & Workspace Integration",
+            description: "Integrating Gemini LLMs across global Search and Workspace suites to defend ad market share and drive enterprise cloud subscription growth."
+          },
+          {
+            company: "Microsoft",
+            type: "growth",
+            title: "Copilot & Cloud Scaling",
+            description: "Accelerating commercial subscription adoption for Copilot and Azure AI developer services across global IT enterprises."
+          },
+          {
+            company: "Apple",
+            type: "risk",
+            title: "Regulatory Compliance & Hardware Cycles",
+            description: "Navigating intense regulatory antitrust scrutiny in the US and EU while managing longer global hardware replacement cycles."
           }
         ];
       } else {
@@ -406,7 +581,11 @@ export async function GET(
     if (!comparisonData) {
       const nameLower = targetEntity?.displayName.toLowerCase() || "";
       const industry = (targetEntity?.industry || "").toLowerCase();
-      const isConsulting = nameLower.includes("ernst") || nameLower.includes("ey") || nameLower.includes("young") || nameLower.includes("deloitte") || nameLower.includes("pwc") || nameLower.includes("kpmg") || nameLower.includes("mckinsey") || nameLower.includes("accenture") || nameLower.includes("bcg") || nameLower.includes("bain") || industry.includes("consulting") || industry.includes("audit") || industry.includes("services");
+      
+      const isConsulting = nameLower.includes("deloitte") || nameLower.includes("pwc") || nameLower.includes("kpmg") || nameLower.includes("mckinsey") || nameLower.includes("accenture") || nameLower.includes("bcg") || nameLower.includes("bain") || nameLower.includes("ernst") || nameLower.includes("ey") || nameLower.includes("young") || industry.includes("consulting") || industry.includes("audit") || industry.includes("services");
+      const isFinancial = nameLower.includes("goldman") || nameLower.includes("sachs") || nameLower.includes("morgan stanley") || nameLower.includes("jpmorgan") || nameLower.includes("jp morgan") || nameLower.includes("citi") || nameLower.includes("bank of america") || industry.includes("financial") || industry.includes("banking") || industry.includes("wealth") || industry.includes("investment");
+      const isPharma = nameLower.includes("astrazeneca") || nameLower.includes("astra zeneca") || nameLower.includes("pfizer") || nameLower.includes("roche") || nameLower.includes("novartis") || nameLower.includes("merck") || industry.includes("pharma") || industry.includes("life science") || industry.includes("health") || industry.includes("biotech");
+      const isTech = nameLower.includes("google") || nameLower.includes("alphabet") || nameLower.includes("microsoft") || nameLower.includes("apple") || nameLower.includes("meta") || nameLower.includes("amazon") || industry.includes("technology") || industry.includes("software") || industry.includes("internet");
 
       if (isConsulting) {
         comparisonData = {
@@ -415,6 +594,30 @@ export async function GET(
           structure_analysis: "Strategic consolidations shape the sector. While EY previously abandoned its 'Project Everest' split, other member networks are streamlining operations, and Accenture continues to aggressively acquire local digital boutiques.",
           leadership_analysis: "EY is executing under its new Global CEO Janet Truncale, establishing operational stability. PwC has also updated leadership lines, while McKinsey recently re-elected Bob Sternfels amidst organizational adjustments.",
           performance_analysis: "Due to partnership structures, precise net margins are closely guarded. However, Accenture (15.5% operating margin) remains the public benchmark. Deloitte and PwC lead in absolute revenues, with EY and KPMG tracking closely behind."
+        };
+      } else if (isFinancial) {
+        comparisonData = {
+          summary: `JPMorgan Chase and Morgan Stanley lead the financial benchmark, while Goldman Sachs recalibrates its capital allocations and exits consumer markets.`,
+          investment_analysis: "JPMorgan Chase leads the sector in absolute technology spending ($15B+ annually) on AI, cybersecurity, and cloud ledger platforms. Morgan Stanley is scaling digital wealth advisory tools, whereas Goldman Sachs is prioritizing institutional client portals.",
+          structure_analysis: "Goldman Sachs has executed its strategic exit from consumer lending (selling GreenSky and credit card books) to refocus entirely on core global banking and markets. JPMorgan Chase continues to selectively absorb regional franchises.",
+          leadership_analysis: "JPMorgan Chase remains exceptionally stable under Jamie Dimon's long-standing tenure. Goldman Sachs continues to run under David Solomon's leadership, while Morgan Stanley recently completed a smooth CEO transition to Ted Pick.",
+          performance_analysis: "JPMorgan Chase demonstrates stellar return on equity (ROE) of over 15%, Morgan Stanley showcases highly stable fee-based wealth margins, and Goldman Sachs targets an 11-13% ROE mid-term as it refines its asset management allocation."
+        };
+      } else if (isPharma) {
+        comparisonData = {
+          summary: `AstraZeneca leads in oncology innovation and biotech pipeline growth, while Pfizer completes its post-pandemic financial re-basement and integrates Seagen.`,
+          investment_analysis: "AstraZeneca and Roche lead in R&D reinvestment rates, dedicating over 20% of sales to oncology, rare diseases, and immunology trials. Novartis is focusing heavily on gene and cell therapies.",
+          structure_analysis: "Pfizer is executing a massive cost-realignment program and integrating Seagen, while AstraZeneca is expanding via targeted biotech acquisitions in cell therapies and immunology.",
+          leadership_analysis: "Pascal Soriot continues his long-standing execution of AstraZeneca's growth trajectory, while Pfizer's management under Albert Bourla focuses on oncology execution.",
+          performance_analysis: "AstraZeneca maintains high double-digit revenue growth and strong margins, while Roche and Novartis showcase steady gross margins above 70%, offsetting biosimilar competition."
+        };
+      } else if (isTech) {
+        comparisonData = {
+          summary: `Microsoft leads the enterprise cloud AI expansion, while Alphabet accelerates search innovation and Apple navigates device cycles and regulatory challenges.`,
+          investment_analysis: "Microsoft and Google are in an intense AI arms race, committing billions to custom TPU/GPU datacenters. Apple is scaling on-device processing via proprietary chips.",
+          structure_analysis: "Microsoft has integrated Activision Blizzard to strengthen its gaming and consumer divisions, while Google continues to restructure teams to optimize research efficiency.",
+          leadership_analysis: "Satya Nadella and Sundar Pichai provide stable, long-term leadership focused on cloud and AI execution, while Apple is prepping its next-generation leadership lines.",
+          performance_analysis: "Microsoft maintains exceptional operating margins (above 40%), Google showcases strong cash flow generation, and Apple exhibits robust premium hardware margins and services revenue."
         };
       } else {
         comparisonData = {

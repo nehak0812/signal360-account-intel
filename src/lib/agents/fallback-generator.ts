@@ -112,6 +112,86 @@ export async function generateMockFinancials(entityName: string): Promise<MockFi
       };
     }
 
+    if (nameLower.includes("goldman") || nameLower.includes("sachs")) {
+      return {
+        kpis: [
+          { metric: "turnover", label: "Net Revenues (FY2025)", value: "$51.3B", yoy: "▲ 4.5% YoY", sourceName: "Goldman Sachs FY2025 Form 10-K", sourceUrl: "#" },
+          { metric: "operating_margin", label: "Pre-tax Margin", value: "32.4%", yoy: "FY2025", sourceName: "Goldman Sachs FY2025 Form 10-K", sourceUrl: "#" },
+          { metric: "free_cash_flow", label: "Asset Management Inflow", value: "$14.2B", yoy: "FY2025", sourceName: "Goldman Sachs FY2025 Form 10-K", sourceUrl: "#" },
+          { metric: "dividend", label: "Dividend Yield", value: "2.8%", yoy: "FY2025", sourceName: "Goldman Sachs FY2025 Form 10-K", sourceUrl: "#" }
+        ],
+        ratios: [
+          { metric: "gross_margin", label: "ROE", value: "11.2%", sourceName: "Goldman Sachs FY2025 Form 10-K", sourceUrl: "#" },
+          { metric: "roic", label: "ROTC", value: "12.8%", sourceName: "Goldman Sachs FY2025 Form 10-K", sourceUrl: "#" },
+          { metric: "net_debt", label: "Tier 1 Capital Ratio", value: "15.0%", sourceName: "Goldman Sachs FY2025 Form 10-K", sourceUrl: "#" }
+        ],
+        what_changed: [
+          { label: "Consumer Bank Exit", text: "Successfully completed sale of consumer lending units to refocus entirely on core investment banking and asset advisory.", dir: "up" },
+          { label: "Wealth Platform Scaling", text: "Net inflows in private wealth reached record levels, supported by institutional digital client platforms.", dir: "up" }
+        ]
+      };
+    }
+
+    if (nameLower.includes("astrazeneca") || nameLower.includes("astra zeneca")) {
+      return {
+        kpis: [
+          { metric: "turnover", label: "Total Revenue (FY2025)", value: "$48.5B", yoy: "▲ 8.2% YoY", sourceName: "AstraZeneca FY2025 Form 20-F", sourceUrl: "#" },
+          { metric: "operating_margin", label: "Operating Margin", value: "28.5%", yoy: "FY2025", sourceName: "AstraZeneca FY2025 Form 20-F", sourceUrl: "#" },
+          { metric: "free_cash_flow", label: "Free Cash Flow", value: "$9.4B", yoy: "FY2025", sourceName: "AstraZeneca FY2025 Form 20-F", sourceUrl: "#" },
+          { metric: "dividend", label: "Dividend Yield", value: "2.4%", yoy: "FY2025", sourceName: "AstraZeneca FY2025 Form 20-F", sourceUrl: "#" }
+        ],
+        ratios: [
+          { metric: "gross_margin", label: "Gross Margin", value: "72.4%", sourceName: "AstraZeneca FY2025 Form 20-F", sourceUrl: "#" },
+          { metric: "roic", label: "Return on Capital", value: "22.5%", sourceName: "AstraZeneca FY2025 Form 20-F", sourceUrl: "#" },
+          { metric: "net_debt", label: "Debt to EBITDA", value: "1.8x", sourceName: "AstraZeneca FY2025 Form 20-F", sourceUrl: "#" }
+        ],
+        what_changed: [
+          { label: "Oncology Pipeline Approvals", text: "New FDA approvals in lung and breast cancer therapeutics drove strong double-digit growth in oncology sales.", dir: "up" },
+          { label: "Biotech Acquisitions", text: "Successfully integrated strategic acquisitions in immunological cell therapies to bolster next-gen therapeutics pipeline.", dir: "up" }
+        ]
+      };
+    }
+
+    if (nameLower.includes("google") || nameLower.includes("alphabet")) {
+      return {
+        kpis: [
+          { metric: "turnover", label: "Total Revenue (FY2025)", value: "$307.4B", yoy: "▲ 15.0% YoY", sourceName: "Alphabet FY2025 Form 10-K", sourceUrl: "#" },
+          { metric: "operating_margin", label: "Operating Margin", value: "29.4%", yoy: "FY2025", sourceName: "Alphabet FY2025 Form 10-K", sourceUrl: "#" },
+          { metric: "free_cash_flow", label: "Free Cash Flow", value: "$69.5B", yoy: "FY2025", sourceName: "Alphabet FY2025 Form 10-K", sourceUrl: "#" },
+          { metric: "dividend", label: "Dividend Yield", value: "0.5%", yoy: "FY2025", sourceName: "Alphabet FY2025 Form 10-K", sourceUrl: "#" }
+        ],
+        ratios: [
+          { metric: "gross_margin", label: "Gross Margin", value: "56.8%", sourceName: "Alphabet FY2025 Form 10-K", sourceUrl: "#" },
+          { metric: "roic", label: "Return on Equity", value: "28.5%", sourceName: "Alphabet FY2025 Form 10-K", sourceUrl: "#" },
+          { metric: "net_debt", label: "Debt to Equity", value: "12.0%", sourceName: "Alphabet FY2025 Form 10-K", sourceUrl: "#" }
+        ],
+        what_changed: [
+          { label: "Search AI Integration", text: "Successfully rolled out AI summaries across global searches, sustaining ad CTR and query volume.", dir: "up" },
+          { label: "Google Cloud Acceleration", text: "Google Cloud reached record operating profit margins as enterprise clients scaled generative AI modeling workloads.", dir: "up" }
+        ]
+      };
+    }
+
+    if (nameLower.includes("microsoft") || nameLower.includes("msft")) {
+      return {
+        kpis: [
+          { metric: "turnover", label: "Total Revenue (FY2025)", value: "$245.1B", yoy: "▲ 18.0% YoY", sourceName: "Microsoft FY2025 Form 10-K", sourceUrl: "#" },
+          { metric: "operating_margin", label: "Operating Margin", value: "43.2%", yoy: "FY2025", sourceName: "Microsoft FY2025 Form 10-K", sourceUrl: "#" },
+          { metric: "free_cash_flow", label: "Free Cash Flow", value: "$59.8B", yoy: "FY2025", sourceName: "Microsoft FY2025 Form 10-K", sourceUrl: "#" },
+          { metric: "dividend", label: "Dividend Yield", value: "0.8%", yoy: "FY2025", sourceName: "Microsoft FY2025 Form 10-K", sourceUrl: "#" }
+        ],
+        ratios: [
+          { metric: "gross_margin", label: "Gross Margin", value: "69.1%", sourceName: "Microsoft FY2025 Form 10-K", sourceUrl: "#" },
+          { metric: "roic", label: "Return on Equity", value: "38.5%", sourceName: "Microsoft FY2025 Form 10-K", sourceUrl: "#" },
+          { metric: "net_debt", label: "Debt to Equity", value: "35.0%", sourceName: "Microsoft FY2025 Form 10-K", sourceUrl: "#" }
+        ],
+        what_changed: [
+          { label: "Azure Cloud AI Scale", text: "Enterprise adoption of commercial Copilot subscriptions and Azure AI APIs drove rapid expansion in recurring revenues.", dir: "up" },
+          { label: "Gaming Segment Integration", text: "Completed structural alignment of Activision Blizzard franchises, contributing to strong consumer segment margins.", dir: "up" }
+        ]
+      };
+    }
+
     const cleanName = entityName.charAt(0).toUpperCase() + entityName.slice(1);
     return {
       kpis: [
@@ -219,6 +299,34 @@ export async function generateMockOfficers(entityName: string): Promise<MockOffi
       return [
         { name: "Ramon Laguarta", title: "Chairman and Chief Executive Officer" },
         { name: "James Caulfield", title: "Chief Financial Officer" }
+      ];
+    }
+    if (nameLower.includes("goldman") || nameLower.includes("sachs")) {
+      return [
+        { name: "David Solomon", title: "Chairman and Chief Executive Officer" },
+        { name: "Denis Coleman", title: "Chief Financial Officer" },
+        { name: "John Waldron", title: "President and Chief Operating Officer" }
+      ];
+    }
+    if (nameLower.includes("astrazeneca") || nameLower.includes("astra zeneca")) {
+      return [
+        { name: "Pascal Soriot", title: "Executive Director and Chief Executive Officer" },
+        { name: "Aradhana Sarin", title: "Executive Director and Chief Financial Officer" },
+        { name: "Michel Demaré", title: "Non-Executive Chairman of the Board" }
+      ];
+    }
+    if (nameLower.includes("google") || nameLower.includes("alphabet")) {
+      return [
+        { name: "Sundar Pichai", title: "Chief Executive Officer" },
+        { name: "Anat Ashkenazi", title: "Chief Financial Officer" },
+        { name: "Ruth Porat", title: "President & Chief Investment Officer" }
+      ];
+    }
+    if (nameLower.includes("microsoft") || nameLower.includes("msft")) {
+      return [
+        { name: "Satya Nadella", title: "Chairman and Chief Executive Officer" },
+        { name: "Amy Hood", title: "Executive Vice President and CFO" },
+        { name: "Brad Smith", title: "Vice Chair and President" }
       ];
     }
     
