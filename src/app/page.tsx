@@ -535,7 +535,11 @@ export default function SignalDashboard() {
               <div className="nm text-left">
                 <span className="font-semibold text-[14px] leading-tight block">{currentEntityName}</span>
                 <span className="font-mono text-[10px] text-ink-soft block font-normal mt-[1px] max-sm:hidden">
-                  {overview?.entity?.tickers?.[0]?.exchange || "LSE"}: {overview?.entity?.tickers?.[0]?.symbol || "ULVR"} · {overview?.entity?.industry || "FMCG"}
+                  {overview?.entity ? (
+                    `${overview.entity.tickers?.[0]?.exchange || "NYSE"}: ${overview.entity.tickers?.[0]?.symbol || ""} · ${overview.entity.industry || ""}`
+                  ) : (
+                    "Loading..."
+                  )}
                 </span>
               </div>
               <div className="sw font-mono text-[9px] text-ink-faint border-l border-line pl-[9px] ml-[3px] max-sm:hidden">SWITCH ▾</div>
